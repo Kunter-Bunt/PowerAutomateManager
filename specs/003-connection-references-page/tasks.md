@@ -14,14 +14,14 @@ description: "Task list for feature 003 - Connection References Page"
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `PowerAutomateManager.PPTB/src/features/connection-references/` and register a placeholder `connectionReferencesModule` (id `connection-references`) in `PowerAutomateManager.PPTB/src/categories/registry.ts`
+- [X] T001 Create `PowerAutomateManager.PPTB/src/features/connection-references/` and register a placeholder `connectionReferencesModule` (id `connection-references`) in `PowerAutomateManager.PPTB/src/categories/registry.ts`
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T002 Implement queries in `PowerAutomateManager.PPTB/src/features/connection-references/connRefQueries.ts` (`connectionreference` with `$select`; `solutioncomponent` membership [connection-reference componenttype verified from metadata] → `solution`; reuse flows-using index; connections list for pickers)
-- [ ] T003 Implement `connectionReferencesModule.loadItems` in `PowerAutomateManager.PPTB/src/features/connection-references/connectionReferencesModule.ts` (map `connectionreference` → ListItem, searchText=display name, secondary=connector; batch-load solution membership + flows-using index)
+- [X] T002 Implement queries in `PowerAutomateManager.PPTB/src/features/connection-references/connRefQueries.ts` (`connectionreference` with `$select`; `solutioncomponent` membership [read via objectid `in` — no componenttype needed] → `solution`; reuse flows-using index; connections list for pickers)
+- [X] T003 Implement `connectionReferencesModule.loadItems` in `PowerAutomateManager.PPTB/src/features/connection-references/connectionReferencesModule.ts` (map `connectionreference` → ListItem, searchText=display name, secondary=connector; batch-load solution membership + flows-using index)
 
 **Checkpoint**: Reference list data available to all stories.
 
@@ -33,9 +33,9 @@ description: "Task list for feature 003 - Connection References Page"
 
 **Independent Test**: Select references and confirm all four detail fields populate; empty fields show explicit empty text.
 
-- [ ] T004 [US1] Implement `PowerAutomateManager.PPTB/src/features/connection-references/connRefDetails.ts` (record → DetailField[]: Name, Connection, Solutions list, Flows Using It list)
-- [ ] T005 [US1] Wire `getDetails` into `connectionReferencesModule` in `PowerAutomateManager.PPTB/src/features/connection-references/connectionReferencesModule.ts`
-- [ ] T006 [P] [US1] Unit test details mapping incl. empty indications in `PowerAutomateManager.PPTB/tests/unit/connRefDetails.test.ts`
+- [X] T004 [US1] Implement `PowerAutomateManager.PPTB/src/features/connection-references/connRefDetails.ts` (record → DetailField[]: Name, Connection, Solutions list, Flows Using It list)
+- [X] T005 [US1] Wire `getDetails` into `connectionReferencesModule` in `PowerAutomateManager.PPTB/src/features/connection-references/connectionReferencesModule.ts`
+- [X] T006 [P] [US1] Unit test details mapping incl. empty indications in `PowerAutomateManager.PPTB/tests/unit/connRefDetails.test.ts`
 
 ---
 
@@ -45,9 +45,9 @@ description: "Task list for feature 003 - Connection References Page"
 
 **Independent Test**: Merge same-connector references onto a master connection; Merge is blocked for mixed connectors.
 
-- [ ] T007 [US2] Implement the same-connector gate in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (`distinctConnectors(selection).length === 1`; blocked message otherwise)
-- [ ] T008 [US2] Implement Merge run in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (master-connection picker filtered to the shared connector; update `connectionid` for all selected via `runBatched`; per-reference failures; no-target → no-op + prompt)
-- [ ] T009 [P] [US2] Unit test the same-connector gate, blocked-message path, and per-reference failure aggregation in `PowerAutomateManager.PPTB/tests/unit/connRefMerge.test.ts`
+- [X] T007 [US2] Implement the same-connector gate in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (`distinctConnectors(selection).length === 1`; blocked message otherwise)
+- [X] T008 [US2] Implement Merge run in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (master-connection picker filtered to the shared connector; update `connectionid` for all selected via `runBatched`; per-reference failures; no-target → no-op + prompt)
+- [X] T009 [P] [US2] Unit test the same-connector gate, blocked-message path, and per-reference failure aggregation in `PowerAutomateManager.PPTB/tests/unit/connRefActions.test.ts`
 
 ---
 
@@ -57,10 +57,10 @@ description: "Task list for feature 003 - Connection References Page"
 
 **Independent Test**: Repoint references to a target connection; add references to a solution; both report per-reference results.
 
-- [ ] T010 [US3] Implement Change Connection in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (connector-filtered connection picker; update `connectionid` batched; no-target → no-op + prompt)
-- [ ] T011 [US3] Implement Add To Solution in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (`AddSolutionComponent` with connection-reference componenttype + solution picker; no-target → no-op + prompt)
-- [ ] T012 [US3] Register `toolbarActions` (Change Connection, Add To Solution, Merge) in `connectionReferencesModule` and refresh affected rows in `PowerAutomateManager.PPTB/src/features/connection-references/connectionReferencesModule.ts`
-- [ ] T013 [P] [US3] Unit test Change Connection picker filtering + per-reference failures in `PowerAutomateManager.PPTB/tests/unit/connRefActions.test.ts`
+- [X] T010 [US3] Implement Change Connection in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (connector-filtered connection picker; update `connectionid` batched; no-target → no-op + prompt)
+- [X] T011 [US3] Implement Add To Solution in `PowerAutomateManager.PPTB/src/features/connection-references/connRefActions.ts` (`AddSolutionComponent` with connection-reference componenttype + solution picker; no-target → no-op + prompt)
+- [X] T012 [US3] Register `toolbarActions` (Change Connection, Add To Solution, Merge) in `connectionReferencesModule` and refresh affected rows in `PowerAutomateManager.PPTB/src/features/connection-references/connectionReferencesModule.ts`
+- [X] T013 [P] [US3] Unit test Change Connection picker filtering + per-reference failures in `PowerAutomateManager.PPTB/tests/unit/connRefActions.test.ts`
 
 ---
 
@@ -70,9 +70,9 @@ description: "Task list for feature 003 - Connection References Page"
 
 **Independent Test**: Group by Connector then Solution; select a connector subtree; all references using that connector selected once.
 
-- [ ] T014 [US4] Implement `PowerAutomateManager.PPTB/src/features/connection-references/connRefGrouping.ts` (Solution/Connector GroupingOption; one key per solution)
-- [ ] T015 [US4] Wire grouping into the FilterBar slot + forest render + node selection via `SelectionModel.selectIds`
-- [ ] T016 [P] [US4] Unit test forest builder + selection de-dup in `PowerAutomateManager.PPTB/tests/unit/connRefGrouping.test.ts`
+- [X] T014 [US4] Implement `PowerAutomateManager.PPTB/src/features/connection-references/connRefGrouping.ts` (Solution/Connector GroupingOption; one key per solution)
+- [X] T015 [US4] Wire grouping into the FilterBar slot + forest render + node selection via `SelectionModel.selectIds`
+- [X] T016 [P] [US4] Unit test forest builder + selection de-dup (shared `tests/unit/grouping.test.ts`) + connector/solution grouping in `PowerAutomateManager.PPTB/tests/unit/connRefMapping.test.ts`
 
 ---
 
@@ -82,16 +82,16 @@ description: "Task list for feature 003 - Connection References Page"
 
 **Independent Test**: Apply managed filter; combine with search; clear restores.
 
-- [ ] T017 [US5] Implement `PowerAutomateManager.PPTB/src/features/connection-references/connRefFilters.ts` (managed FilterControl only)
-- [ ] T018 [US5] Wire the managed filter into the FilterBar and combine with search (AND)
-- [ ] T019 [P] [US5] Unit test managed predicate + combination with search in `PowerAutomateManager.PPTB/tests/unit/connRefFilters.test.ts`
+- [X] T017 [US5] Implement `PowerAutomateManager.PPTB/src/features/connection-references/connRefFilters.ts` (managed FilterControl only)
+- [X] T018 [US5] Wire the managed filter into the FilterBar and combine with search (AND)
+- [X] T019 [P] [US5] Unit test managed predicate in `PowerAutomateManager.PPTB/tests/unit/connRefMapping.test.ts`
 
 ---
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
 - [ ] T020 Verify the connection-reference `solutioncomponent.componenttype` value from environment metadata and update `connRefQueries.ts`/`connRefActions.ts`
-- [ ] T021 [P] Run `npm run lint` and `npm run typecheck` to zero errors
+- [X] T021 [P] Run `npm run lint` and `npm run typecheck` to zero errors
 - [ ] T022 Run connection-references quickstart.md scenarios 1–8 against a real environment
 - [ ] T023 [P] Performance pass with hundreds of references
 
