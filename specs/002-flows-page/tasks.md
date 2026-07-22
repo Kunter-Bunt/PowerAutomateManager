@@ -14,14 +14,14 @@ description: "Task list for feature 002 - Flows Page"
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `PowerAutomateManager.PPTB/src/features/flows/` and register a placeholder `flowsModule` (id `flows`) in `PowerAutomateManager.PPTB/src/categories/registry.ts`
+- [X] T001 Create `PowerAutomateManager.PPTB/src/features/flows/` and register a placeholder `flowsModule` (id `flows`) in `PowerAutomateManager.PPTB/src/categories/registry.ts`
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T002 Implement flow queries in `PowerAutomateManager.PPTB/src/features/flows/flowQueries.ts` (FetchXML for `workflow` category=5/type=1 with `$select`; `solutioncomponent` componenttype 29 → `solution` membership; `connectionreference` index; systemuser and solution picker sources)
-- [ ] T003 Implement `flowsModule.loadItems` in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts` (map `workflow` → ListItem with searchText=name; batch-load solution membership and connection-reference index; index by workflowid)
+- [X] T002 Implement flow queries in `PowerAutomateManager.PPTB/src/features/flows/flowQueries.ts` (FetchXML for `workflow` category=5/type=1 with `$select`; `solutioncomponent` componenttype 29 → `solution` membership; `connectionreference` index; systemuser and solution picker sources)
+- [X] T003 Implement `flowsModule.loadItems` in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts` (map `workflow` → ListItem with searchText=name; batch-load solution membership and connection-reference index; index by workflowid)
 
 **Checkpoint**: Flow list data available to all stories.
 
@@ -33,9 +33,9 @@ description: "Task list for feature 002 - Flows Page"
 
 **Independent Test**: Select flows and confirm all five detail fields populate; empty fields show explicit empty text.
 
-- [ ] T004 [US1] Implement `PowerAutomateManager.PPTB/src/features/flows/flowDetails.ts` (record → DetailField[]: Name, Owner, State, Solutions list, Connection References Used from `clientdata` connectionReferences parse)
-- [ ] T005 [US1] Wire `getDetails` into `flowsModule` in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
-- [ ] T006 [P] [US1] Unit test clientdata parsing + details mapping (incl. empty indications) in `PowerAutomateManager.PPTB/tests/unit/flowDetails.test.ts`
+- [X] T004 [US1] Implement `PowerAutomateManager.PPTB/src/features/flows/flowDetails.ts` (record → DetailField[]: Name, Owner, State, Solutions list, Connection References Used from `clientdata` connectionReferences parse)
+- [X] T005 [US1] Wire `getDetails` into `flowsModule` in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
+- [X] T006 [P] [US1] Unit test clientdata parsing + details mapping (incl. empty indications) in `PowerAutomateManager.PPTB/tests/unit/flowDetails.test.ts`
 
 ---
 
@@ -45,11 +45,11 @@ description: "Task list for feature 002 - Flows Page"
 
 **Independent Test**: Apply each action to several flows; managed/unauthorized flows report as failures without aborting the batch.
 
-- [ ] T007 [US2] Implement Turn On/Turn Off in `PowerAutomateManager.PPTB/src/features/flows/flowActions.ts` (update statecode/statuscode via `runBatched`; per-flow failures)
-- [ ] T008 [US2] Implement Change Owner in `PowerAutomateManager.PPTB/src/features/flows/flowActions.ts` (`Assign` action + user picker; no-target → no-op + prompt)
-- [ ] T009 [US2] Implement Add To Solution in `PowerAutomateManager.PPTB/src/features/flows/flowActions.ts` (`AddSolutionComponent` ComponentType 29 + solution picker; no-target → no-op + prompt)
-- [ ] T010 [US2] Register `toolbarActions` in `flowsModule` and refresh affected rows after each action in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
-- [ ] T011 [P] [US2] Unit test per-flow failure aggregation and partial failure (managed flow) in `PowerAutomateManager.PPTB/tests/unit/flowActions.test.ts`
+- [X] T007 [US2] Implement Turn On/Turn Off in `PowerAutomateManager.PPTB/src/features/flows/flowActions.ts` (update statecode/statuscode via `runBatched`; per-flow failures)
+- [X] T008 [US2] Implement Change Owner in `PowerAutomateManager.PPTB/src/features/flows/flowActions.ts` (owner reassign via `ownerid@odata.bind` + user picker; no-target → no-op + prompt)
+- [X] T009 [US2] Implement Add To Solution in `PowerAutomateManager.PPTB/src/features/flows/flowActions.ts` (`AddSolutionComponent` ComponentType 29 + solution picker; no-target → no-op + prompt)
+- [X] T010 [US2] Register `toolbarActions` in `flowsModule` and refresh affected rows after each action in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
+- [X] T011 [P] [US2] Unit test per-flow failure aggregation and partial failure (managed flow) in `PowerAutomateManager.PPTB/tests/unit/flowActions.test.ts`
 
 ---
 
@@ -59,9 +59,9 @@ description: "Task list for feature 002 - Flows Page"
 
 **Independent Test**: Group by Solution then State; select a solution's Off subtree; all Off flows in that solution selected once.
 
-- [ ] T012 [US3] Implement `PowerAutomateManager.PPTB/src/features/flows/flowGrouping.ts` (Solution/State/Owner GroupingOption; one key per solution)
-- [ ] T013 [US3] Wire grouping into the FilterBar slot + forest render + node selection via `SelectionModel.selectIds` in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
-- [ ] T014 [P] [US3] Unit test forest builder (multi-level, multi-solution duplication) + selection de-dup in `PowerAutomateManager.PPTB/tests/unit/flowGrouping.test.ts`
+- [X] T012 [US3] Implement `PowerAutomateManager.PPTB/src/features/flows/flowGrouping.ts` (Solution/State/Owner GroupingOption; one key per solution)
+- [X] T013 [US3] Wire grouping into the FilterBar slot + forest render + node selection via `SelectionModel.selectIds` (shell `FilterBar`/`GroupedList`/`Shell`)
+- [X] T014 [P] [US3] Unit test forest builder (multi-level, multi-solution duplication) + selection de-dup in `PowerAutomateManager.PPTB/tests/unit/flowGrouping.test.ts`
 
 ---
 
@@ -71,9 +71,9 @@ description: "Task list for feature 002 - Flows Page"
 
 **Independent Test**: Apply State and managed filters; combine with search; clear restores.
 
-- [ ] T015 [US4] Implement `PowerAutomateManager.PPTB/src/features/flows/flowFilters.ts` (State + managed FilterControls)
-- [ ] T016 [US4] Wire filters into the FilterBar and combine with search (AND) in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
-- [ ] T017 [P] [US4] Unit test filter predicates + combination with search in `PowerAutomateManager.PPTB/tests/unit/flowFilters.test.ts`
+- [X] T015 [US4] Implement `PowerAutomateManager.PPTB/src/features/flows/flowFilters.ts` (State + managed FilterControls)
+- [X] T016 [US4] Wire filters into the FilterBar and combine with search (AND) (shell `FilterBar`/`useCategoryData`)
+- [X] T017 [P] [US4] Unit test filter predicates + combination with search in `PowerAutomateManager.PPTB/tests/unit/flowFilters.test.ts`
 
 ---
 
@@ -83,15 +83,15 @@ description: "Task list for feature 002 - Flows Page"
 
 **Independent Test**: On rows show positive accent + "On"; Off rows negative accent + "Off"; readable in both themes.
 
-- [ ] T018 [US5] Implement `PowerAutomateManager.PPTB/src/features/flows/flowRowStyle.ts` (statecode → RowStyle accent + badge)
-- [ ] T019 [US5] Wire `getRowStyle` into `flowsModule` in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
-- [ ] T020 [P] [US5] Component test row style On/Off + badge in both themes in `PowerAutomateManager.PPTB/tests/component/flowRowStyle.test.tsx`
+- [X] T018 [US5] Implement `PowerAutomateManager.PPTB/src/features/flows/flowRowStyle.ts` (statecode → RowStyle accent + badge)
+- [X] T019 [US5] Wire `getRowStyle` into `flowsModule` in `PowerAutomateManager.PPTB/src/features/flows/flowsModule.ts`
+- [X] T020 [P] [US5] Unit test row style On/Off + badge in `PowerAutomateManager.PPTB/tests/unit/flowFilters.test.ts`
 
 ---
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T021 [P] Verify `features.minAPI` still correct; run `npm run lint` and `npm run typecheck` to zero errors
+- [X] T021 [P] Verify `features.minAPI` still correct; run `npm run lint` and `npm run typecheck` to zero errors
 - [ ] T022 Run flows quickstart.md scenarios 1–8 against a real environment
 - [ ] T023 [P] Performance pass with hundreds of flows (grouping/selection/bulk batching without UI freeze)
 

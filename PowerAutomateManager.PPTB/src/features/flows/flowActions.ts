@@ -1,0 +1,120 @@
+import * as dv from '../../services/dataverseClient';
+import { runBatched, type BatchFailure } from '../../lib/batch';
+import { openPicker, type PickerOption } from '../../app/pickerService';
+import * as host from '../../services/toolboxHost';
+import {
+  COMPONENTTYPE_WORKFLOW,
+  STATE_OFF,
+  STATE_ON,
+  STATUS_OFF,
+  STATUS_ON,
+  str,
+} from './flowState';
+import type { ActionResult, ListItem, ToolbarAction } from '../../models/types';
+
+function toResult(failures: BatchFailure<ListItem>[]): ActionResult {
+  if (failures.length === 0) return { ok: true };
+  return { ok: false, failures: failures.map((f) => ({ id: f.item.id, reason: f.error })) };
+}
+
+async function setFlowState(
+  selection: ListItem[],
+  statecode: number,
+  statuscode: number,
+): Promise<ActionResult> {
+  const failures = await runBatched(selection, async (item) => {
+    await dv.update('workflow', item.id, { statecode, statuscode });
+  });
+  return toResult(failures);
+}
+
+async function loadUsers(): Promise<PickerOption[]> {
+  const rows = await dv.query(
+    'systemusers?$select=fullname&$filter=isdisabled eq false&$orderby=fullname&$top=500',
+    new AbortController().signal,
+  );
+  return rows.map((r) => ({
+    value: str(r, 'systemuserid'),
+    label: str(r, 'fullname') || str(r, 'systemuserid'),
+  }));
+}
+
+async function loadUnmanagedSolutions(): Promise<PickerOption[]> {
+  const rows = await dv.getSolutions(['solutionid', 'uniquename', 'friendlyname', 'ismanaged']);
+  return rows
+    .filter((r) => r['ismanaged'] === false)
+    .map((r) => ({
+      value: str(r, 'uniquename'),
+      label: str(r, 'friendlyname') || str(r, 'uniquename'),
+    }));
+}
+
+async function changeOwner(selection: ListItem[]): Promise<ActionResult> {
+  const users = await loadUsers();
+  const picked = await openPicker({ title: 'Change Owner', options: users, confirmLabel: 'Assign' });
+  if (!picked || picked.length === 0) {
+    await host.notify({ title: 'Change Owner', body: 'Select a target user.', type: 'info' });
+    return { ok: true };
+  }
+  const target = picked[0];
+  const failures = await runBatched(selection, async (item) => {
+    await dv.update('workflow', item.id, { 'ownerid@odata.bind': `/systemusers(${target})` });
+  });
+  return toResult(failures);
+}
+
+async function addToSolution(selection: ListItem[]): Promise<ActionResult> {
+  const solutions = await loadUnmanagedSolutions();
+  const picked = await openPicker({ title: 'Add To Solution', options: solutions, confirmLabel: 'Add' });
+  if (!picked || picked.length === 0) {
+    await host.notify({ title: 'Add To Solution', body: 'Select a target solution.', type: 'info' });
+    return { ok: true };
+  }
+  const uniqueName = picked[0];
+  const failures = await runBatched(selection, async (item) => {
+    await dv.execute({
+      operationName: 'AddSolutionComponent',
+      operationType: 'action',
+      parameters: {
+        ComponentType: COMPONENTTYPE_WORKFLOW,
+        ComponentId: item.id,
+        SolutionUniqueName: uniqueName,
+        AddRequiredComponents: false,
+      },
+    });
+  });
+  return toResult(failures);
+}
+
+const nonEmpty = (selection: ListItem[]): boolean => selection.length > 0;
+
+export const flowActions: ToolbarAction[] = [
+  {
+    id: 'turn-on',
+    label: 'Turn On',
+    scope: 'category',
+    enabled: nonEmpty,
+    run: (selection) => setFlowState(selection, STATE_ON, STATUS_ON),
+  },
+  {
+    id: 'turn-off',
+    label: 'Turn Off',
+    scope: 'category',
+    enabled: nonEmpty,
+    run: (selection) => setFlowState(selection, STATE_OFF, STATUS_OFF),
+  },
+  {
+    id: 'change-owner',
+    label: 'Change Owner',
+    scope: 'category',
+    enabled: nonEmpty,
+    run: (selection) => changeOwner(selection),
+  },
+  {
+    id: 'add-to-solution',
+    label: 'Add To Solution',
+    scope: 'category',
+    enabled: nonEmpty,
+    run: (selection) => addToSolution(selection),
+  },
+];

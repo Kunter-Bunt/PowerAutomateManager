@@ -1,0 +1,322 @@
+:root {
+  color-scheme: light dark;
+  --pam-bg: #ffffff;
+  --pam-fg: #1b1a19;
+  --pam-muted: #605e5c;
+  --pam-border: #e1dfdd;
+  --pam-hover: #f3f2f1;
+  --pam-selected: #cfe4fa;
+  --pam-accent: #0f6cbd;
+  --pam-positive-bg: #dff6dd;
+  --pam-positive-fg: #0e700e;
+  --pam-negative-bg: #fde7e9;
+  --pam-negative-fg: #a4262c;
+  --pam-neutral-bg: #f3f2f1;
+  --pam-neutral-fg: #605e5c;
+}
+
+.theme-dark {
+  --pam-bg: #1b1a19;
+  --pam-fg: #f3f2f1;
+  --pam-muted: #a19f9d;
+  --pam-border: #3b3a39;
+  --pam-hover: #292827;
+  --pam-selected: #12395c;
+  --pam-accent: #479ef5;
+  --pam-positive-bg: #063b06;
+  --pam-positive-fg: #6ccb6c;
+  --pam-negative-bg: #3b1113;
+  --pam-negative-fg: #f1707b;
+  --pam-neutral-bg: #292827;
+  --pam-neutral-fg: #a19f9d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  background: var(--pam-bg);
+  color: var(--pam-fg);
+}
+
+#app {
+  height: 100vh;
+}
+
+.pam-shell {
+  display: grid;
+  grid-template-columns: 200px 1fr 320px;
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    'nav toolbar toolbar'
+    'nav filterbar filterbar'
+    'nav list details';
+  height: 100vh;
+}
+
+.pam-nav {
+  grid-area: nav;
+  border-right: 1px solid var(--pam-border);
+  padding: 8px;
+}
+.pam-toolbar {
+  grid-area: toolbar;
+  border-bottom: 1px solid var(--pam-border);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pam-filterbar {
+  grid-area: filterbar;
+  border-bottom: 1px solid var(--pam-border);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.pam-list {
+  grid-area: list;
+  overflow: auto;
+  border-right: 1px solid var(--pam-border);
+}
+.pam-details {
+  grid-area: details;
+  overflow: auto;
+  padding: 12px;
+}
+
+.pam-nav button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: left;
+}
+.pam-nav button.active,
+.pam-nav button:hover {
+  background: var(--pam-hover);
+}
+.pam-nav button.active {
+  font-weight: 600;
+}
+
+.pam-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--pam-border);
+  background: var(--pam-bg);
+  color: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.pam-btn:hover:not(:disabled) {
+  background: var(--pam-hover);
+}
+.pam-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pam-search {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--pam-border);
+  border-radius: 4px;
+  background: var(--pam-bg);
+  color: inherit;
+}
+
+.pam-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--pam-border);
+  user-select: none;
+}
+.pam-row:hover {
+  background: var(--pam-hover);
+}
+.pam-row.selected {
+  background: var(--pam-selected);
+}
+.pam-row-primary {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pam-row-secondary {
+  color: var(--pam-muted);
+  font-size: 12px;
+}
+.pam-row.accent-positive {
+  border-left: 4px solid var(--pam-positive-fg);
+}
+.pam-row.accent-negative {
+  border-left: 4px solid var(--pam-negative-fg);
+}
+.pam-row.accent-neutral {
+  border-left: 4px solid var(--pam-neutral-fg);
+}
+
+.pam-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--pam-neutral-bg);
+  color: var(--pam-neutral-fg);
+}
+.pam-badge.positive {
+  background: var(--pam-positive-bg);
+  color: var(--pam-positive-fg);
+}
+.pam-badge.negative {
+  background: var(--pam-negative-bg);
+  color: var(--pam-negative-fg);
+}
+
+.pam-state {
+  padding: 16px;
+  color: var(--pam-muted);
+}
+.pam-state.error {
+  color: var(--pam-negative-fg);
+}
+
+.pam-field {
+  margin-bottom: 12px;
+}
+.pam-field-label {
+  font-size: 12px;
+  color: var(--pam-muted);
+  margin-bottom: 2px;
+}
+.pam-field-empty {
+  color: var(--pam-muted);
+  font-style: italic;
+}
+.pam-field ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+/* Filter chips + grouping controls */
+.pam-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pam-filter-label {
+  color: var(--pam-muted);
+  font-size: 12px;
+}
+.pam-chip {
+  padding: 3px 8px;
+  border: 1px solid var(--pam-border);
+  border-radius: 12px;
+  background: var(--pam-bg);
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+}
+.pam-chip.active {
+  background: var(--pam-selected);
+  border-color: var(--pam-accent);
+}
+.pam-group-select {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--pam-muted);
+}
+.pam-group-select select {
+  padding: 4px 6px;
+  border: 1px solid var(--pam-border);
+  border-radius: 4px;
+  background: var(--pam-bg);
+  color: inherit;
+}
+
+/* Grouped list */
+.pam-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--pam-border);
+  background: var(--pam-hover);
+  font-weight: 600;
+}
+.pam-group-toggle {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  width: 18px;
+}
+.pam-group-count {
+  color: var(--pam-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* Modal picker */
+.pam-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.pam-modal {
+  background: var(--pam-bg);
+  color: var(--pam-fg);
+  border: 1px solid var(--pam-border);
+  border-radius: 6px;
+  padding: 16px;
+  width: 360px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pam-modal-title {
+  margin: 0;
+  font-size: 16px;
+}
+.pam-modal-list {
+  overflow: auto;
+  border: 1px solid var(--pam-border);
+  border-radius: 4px;
+  max-height: 40vh;
+}
+.pam-modal-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.pam-modal-option:hover {
+  background: var(--pam-hover);
+}
+.pam-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
