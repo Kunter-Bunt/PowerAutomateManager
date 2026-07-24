@@ -368,6 +368,10 @@ body {
 .pam-row-busy {
   margin-left: 4px;
 }
+.pam-clock {
+  color: var(--pam-muted);
+  vertical-align: middle;
+}
 
 /* Category notice banner */
 .pam-banner {

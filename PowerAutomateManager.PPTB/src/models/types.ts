@@ -25,9 +25,14 @@ export interface DetailField {
   emptyText?: string;
 }
 
+export type ItemStatus = 'active' | 'waiting' | 'done';
+
 export interface ActionContext {
   connection: Connection;
   refresh: () => void;
+  // Optional per-item progress reporting for long, sequential operations.
+  onItemStatus?: (id: string, status: ItemStatus) => void;
+  onItemUpdate?: (update: ItemUpdate) => void;
 }
 
 export interface ActionEnabledContext {
@@ -40,9 +45,14 @@ export interface CategoryNotice {
   link?: { href: string; label: string };
 }
 
+export interface ItemUpdate {
+  id: string;
+  item: ListItem | null;
+}
+
 export type ActionResult =
-  | { ok: true }
-  | { ok: false; failures: { id: string; reason: string }[] };
+  | { ok: true; updates?: ItemUpdate[] }
+  | { ok: false; failures: { id: string; reason: string }[]; updates?: ItemUpdate[] };
 
 export interface ToolbarAction {
   id: string;

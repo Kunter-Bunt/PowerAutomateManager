@@ -33,7 +33,7 @@ beforeEach(() => {
 describe('flow bulk actions', () => {
   it('Turn On sets statecode/statuscode for every selected flow', async () => {
     const result = await turnOn.run([mk('1'), mk('2')], ctx);
-    expect(result).toEqual({ ok: true });
+    expect(result.ok).toBe(true);
     expect(update).toHaveBeenCalledWith('workflow', '1', { statecode: 1, statuscode: 2 });
     expect(update).toHaveBeenCalledWith('workflow', '2', { statecode: 1, statuscode: 2 });
   });

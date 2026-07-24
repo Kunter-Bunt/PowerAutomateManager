@@ -7,6 +7,7 @@ import { GroupedList } from './GroupedList';
 import { DetailsPanel } from './DetailsPanel';
 import { PickerHost } from './PickerHost';
 import { Spinner } from './Spinner';
+import type { BusyStatus } from './RowStatus';
 import { SelectionModel } from '../state/SelectionModel';
 import { useCategoryData } from '../state/useCategoryData';
 import { clearCache } from '../state/categoryCache';
@@ -14,6 +15,7 @@ import { getCategory } from '../categories/registry';
 import { applyTheme } from '../lib/theme';
 import * as host from '../services/toolboxHost';
 import type {
+  ActionContext,
   CategoryId,
   CategoryNotice,
   GroupingOption,
@@ -30,7 +32,7 @@ export function Shell(): JSX.Element {
   const [filterState, setFilterState] = useState<Record<string, string[]>>({});
   const [grouping, setGrouping] = useState<string[]>([]);
   const [selection, setSelection] = useState<SelectionModel>(new SelectionModel());
-  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+  const [busyStatus, setBusyStatus] = useState<Map<string, BusyStatus>>(new Map());
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -74,7 +76,7 @@ export function Shell(): JSX.Element {
   useEffect(() => {
     clearCache();
     setSelection(new SelectionModel());
-    setBusyIds(new Set());
+    setBusyStatus(new Map());
     setSearchTerm('');
     setFilterState({});
     setGrouping([]);
@@ -153,13 +155,32 @@ export function Shell(): JSX.Element {
     async (action: ToolbarAction) => {
       if (!connection) return;
       // Concurrency guard: never start a second operation on a busy object.
-      const target = selectedItems.filter((item) => !busyIds.has(item.id));
+      const target = selectedItems.filter((item) => !busyStatus.has(item.id));
       if (target.length === 0) return;
       const targetIds = target.map((item) => item.id);
-      setBusyIds((prev) => new Set([...prev, ...targetIds]));
+      // Default to active (spinner); progress-reporting actions demote queued
+      // items to waiting (clock) and promote the current one to active.
+      setBusyStatus((prev) => {
+        const next = new Map(prev);
+        targetIds.forEach((id) => next.set(id, 'active'));
+        return next;
+      });
+
+      const ctx: ActionContext = {
+        connection,
+        refresh,
+        onItemStatus: (id, status) =>
+          setBusyStatus((prev) => {
+            const next = new Map(prev);
+            if (status === 'done') next.delete(id);
+            else next.set(id, status);
+            return next;
+          }),
+        onItemUpdate: (update) => applyItemUpdates([update]),
+      };
 
       try {
-        const result = await action.run(target, { connection, refresh });
+        const result = await action.run(target, ctx);
         if (result.ok) {
           await host.notify({
             title: action.label,
@@ -173,16 +194,23 @@ export function Shell(): JSX.Element {
             type: 'warning',
           });
         }
-        await reloadTargets(target);
+        // Prefer the action's optimistic updates (immediate, and avoids a stale
+        // re-fetch for eventually-consistent operations like flow activation);
+        // otherwise re-fetch the affected rows.
+        if (result.updates && result.updates.length > 0) {
+          applyItemUpdates(result.updates);
+        } else {
+          await reloadTargets(target);
+        }
       } finally {
-        setBusyIds((prev) => {
-          const next = new Set(prev);
+        setBusyStatus((prev) => {
+          const next = new Map(prev);
           targetIds.forEach((id) => next.delete(id));
           return next;
         });
       }
     },
-    [connection, selectedItems, busyIds, refresh, reloadTargets],
+    [connection, selectedItems, busyStatus, refresh, reloadTargets, applyItemUpdates],
   );
 
   return (
@@ -215,7 +243,7 @@ export function Shell(): JSX.Element {
         notice={notice}
         visibleItems={visibleItems}
         selection={selection}
-        busyIds={busyIds}
+        busyStatus={busyStatus}
         groupingOptions={selectedGroupingOptions}
         onRowClick={handleRowClick}
         onSelectIds={(ids) => setSelection((current) => current.selectIds(ids))}
@@ -233,7 +261,7 @@ interface ListRegionProps {
   notice: CategoryNotice | null;
   visibleItems: ListItem[];
   selection: SelectionModel;
-  busyIds: Set<string>;
+  busyStatus: ReadonlyMap<string, BusyStatus>;
   groupingOptions: GroupingOption[];
   onRowClick: (item: ListItem, modifiers: RowClickModifiers) => void;
   onSelectIds: (ids: string[]) => void;
@@ -246,7 +274,7 @@ function ListRegion({
   notice,
   visibleItems,
   selection,
-  busyIds,
+  busyStatus,
   groupingOptions,
   onRowClick,
   onSelectIds,
@@ -280,7 +308,7 @@ function ListRegion({
         items={visibleItems}
         groupingOptions={groupingOptions}
         selection={selection}
-        busyIds={busyIds}
+        busyStatus={busyStatus}
         onRowClick={onRowClick}
         onSelectIds={onSelectIds}
         onDeselectIds={onDeselectIds}
@@ -288,7 +316,7 @@ function ListRegion({
     );
   } else {
     content = (
-      <ObjectList items={visibleItems} selection={selection} busyIds={busyIds} onRowClick={onRowClick} />
+      <ObjectList items={visibleItems} selection={selection} busyStatus={busyStatus} onRowClick={onRowClick} />
     );
   }
 

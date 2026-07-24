@@ -2,30 +2,13 @@ import * as dv from '../../services/dataverseClient';
 import { runBatched, type BatchFailure } from '../../lib/batch';
 import { openPicker, type PickerOption } from '../../app/pickerService';
 import * as host from '../../services/toolboxHost';
-import {
-  COMPONENTTYPE_WORKFLOW,
-  STATE_OFF,
-  STATE_ON,
-  STATUS_OFF,
-  STATUS_ON,
-  str,
-} from './flowState';
+import { COMPONENTTYPE_WORKFLOW, str } from './flowState';
+import { activateFlows } from './flowActivation';
 import type { ActionResult, ListItem, ToolbarAction } from '../../models/types';
 
 function toResult(failures: BatchFailure<ListItem>[]): ActionResult {
   if (failures.length === 0) return { ok: true };
   return { ok: false, failures: failures.map((f) => ({ id: f.item.id, reason: f.error })) };
-}
-
-async function setFlowState(
-  selection: ListItem[],
-  statecode: number,
-  statuscode: number,
-): Promise<ActionResult> {
-  const failures = await runBatched(selection, async (item) => {
-    await dv.update('workflow', item.id, { statecode, statuscode });
-  });
-  return toResult(failures);
 }
 
 async function loadUsers(): Promise<PickerOption[]> {
@@ -94,14 +77,14 @@ export const flowActions: ToolbarAction[] = [
     label: 'Turn On',
     scope: 'category',
     enabled: nonEmpty,
-    run: (selection) => setFlowState(selection, STATE_ON, STATUS_ON),
+    run: (selection, ctx) => activateFlows(selection, 'on', new AbortController().signal, ctx),
   },
   {
     id: 'turn-off',
     label: 'Turn Off',
     scope: 'category',
     enabled: nonEmpty,
-    run: (selection) => setFlowState(selection, STATE_OFF, STATUS_OFF),
+    run: (selection, ctx) => activateFlows(selection, 'off', new AbortController().signal, ctx),
   },
   {
     id: 'change-owner',
