@@ -4,7 +4,10 @@ import { registerPickerHost } from '../../src/app/pickerService';
 import type { ListItem } from '../../src/models/types';
 
 const share = connectionActions.find((a) => a.id === 'share')!;
-const ctx = { connection: { id: 'c', name: 'e', url: '', environment: 'Dev' as const }, refresh: () => undefined };
+const ctx = {
+  connection: { id: 'c', name: 'e', url: '', environment: 'Dev' as const, enabledForPowerPlatformAPI: true },
+  refresh: () => undefined,
+};
 const conn = (id: string): ListItem => ({ id, primaryText: id, searchText: id, raw: {} });
 
 let post: ReturnType<typeof vi.fn>;
@@ -65,5 +68,15 @@ describe('Share connections', () => {
 
   it('exposes only a Share action (no filters on this category)', () => {
     expect(connectionActions.map((a) => a.id)).toEqual(['share']);
+  });
+
+  it('warns and does nothing when the Power Platform API is not enabled', async () => {
+    registerPickerHost((_config, resolve) => resolve(['user:u1']));
+    const result = await share.run([conn('c1')], {
+      connection: { id: 'c', name: 'e', url: '', environment: 'Dev' },
+      refresh: () => undefined,
+    });
+    expect(result).toEqual({ ok: true });
+    expect(post).not.toHaveBeenCalled();
   });
 });

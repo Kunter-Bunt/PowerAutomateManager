@@ -10,8 +10,8 @@ export const connectionsModule: CategoryModule = {
   label: 'Connections',
 
   async loadItems(ctx: LoadContext): Promise<ListItem[]> {
-    // Throws a descriptive error when the connection is not enabled for the
-    // Power Platform API; the shell renders it as a retryable error state.
+    // Uses the Power Platform API when the connection is enabled for it, otherwise
+    // derives the list from Dataverse connection references (works everywhere).
     const connections = await loadConnections(ctx.connection, ctx.signal);
     const flowsByConnection = await buildFlowsByConnection(ctx.signal);
     setConnectionIndex({ flowsByConnection });
@@ -28,4 +28,19 @@ export const connectionsModule: CategoryModule = {
   getDetails: connectionDetails,
   groupingOptions: connectionGroupingOptions,
   toolbarActions: connectionActions,
+
+  getNotice(connection) {
+    if (connection && !connection.enabledForPowerPlatformAPI) {
+      return {
+        level: 'warning',
+        message:
+          'The Power Platform API is not enabled for this connection, so connections are listed from Dataverse and Sharing is unavailable. Configure an app registration, enable “Enabled for Power Platform” on the connection, and grant the Connectivity (Connections) permissions to unlock owner details and Sharing.',
+        link: {
+          href: 'https://docs.powerplatformtoolbox.com/tool-development/api-reference/powerplatform-api',
+          label: 'See the Power Platform API docs',
+        },
+      };
+    }
+    return null;
+  },
 };

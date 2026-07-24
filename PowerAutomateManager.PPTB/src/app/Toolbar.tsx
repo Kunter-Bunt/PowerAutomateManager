@@ -1,8 +1,10 @@
 import type { ListItem, ToolbarAction } from '../models/types';
+import type { Connection } from '../models/hostApi';
 
 interface ToolbarProps {
   selection: ListItem[];
   hasItems: boolean;
+  connection: Connection | null;
   categoryActions: ToolbarAction[];
   onRefresh: () => void;
   onSelectAll: () => void;
@@ -13,6 +15,7 @@ interface ToolbarProps {
 export function Toolbar({
   selection,
   hasItems,
+  connection,
   categoryActions,
   onRefresh,
   onSelectAll,
@@ -40,7 +43,7 @@ export function Toolbar({
           key={action.id}
           type="button"
           className="pam-btn"
-          disabled={!action.enabled(selection)}
+          disabled={!action.enabled(selection, { connection })}
           onClick={() => onRunAction(action)}
         >
           {action.label}

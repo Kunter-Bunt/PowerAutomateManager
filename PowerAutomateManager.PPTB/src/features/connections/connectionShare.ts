@@ -4,7 +4,7 @@ import { runBatched, type BatchFailure } from '../../lib/batch';
 import { openPicker, type PickerOption } from '../../app/pickerService';
 import * as host from '../../services/toolboxHost';
 import { str } from '../../lib/records';
-import type { ActionResult, ListItem, ToolbarAction } from '../../models/types';
+import type { ActionContext, ActionResult, ListItem, ToolbarAction } from '../../models/types';
 
 type PrincipalType = 'user' | 'team' | 's2s';
 
@@ -66,7 +66,15 @@ async function shareConnection(connectionId: string, principals: Principal[]): P
   );
 }
 
-async function share(selection: ListItem[]): Promise<ActionResult> {
+async function share(selection: ListItem[], ctx: ActionContext): Promise<ActionResult> {
+  if (!ctx.connection.enabledForPowerPlatformAPI) {
+    await host.notify({
+      title: 'Share',
+      body: 'Sharing connections requires the Power Platform API to be enabled for this connection (app registration + “Enabled for Power Platform”).',
+      type: 'warning',
+    });
+    return { ok: true };
+  }
   const { options, byValue } = await loadPrincipals();
   const picked = await openPicker({ title: 'Share', options, multiple: true, confirmLabel: 'Share' });
   if (!picked || picked.length === 0) {
@@ -94,7 +102,8 @@ export const connectionActions: ToolbarAction[] = [
     id: 'share',
     label: 'Share',
     scope: 'category',
-    enabled: (selection) => selection.length > 0,
-    run: (selection) => share(selection),
+    enabled: (selection, ctx) =>
+      selection.length > 0 && Boolean(ctx?.connection?.enabledForPowerPlatformAPI),
+    run: (selection, ctx) => share(selection, ctx),
   },
 ];

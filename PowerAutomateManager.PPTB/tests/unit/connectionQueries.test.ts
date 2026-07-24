@@ -41,17 +41,47 @@ describe('parseConnections', () => {
 });
 
 describe('loadConnections', () => {
-  it('throws a descriptive error when the connection is not enabled for the Power Platform API', async () => {
-    await expect(
-      loadConnections({ ...enabled, enabledForPowerPlatformAPI: false }, new AbortController().signal),
-    ).rejects.toThrow(/Power Platform API/);
+  it('derives connections from Dataverse connection references when the Power Platform API is not enabled', async () => {
+    (window as unknown as { dataverseAPI: unknown }).dataverseAPI = {
+      fetchXmlQuery: vi.fn().mockResolvedValue({
+        value: [
+          { connectionid: 'conn1', connectorid: 'shared_sharepointonline', connectionreferencedisplayname: 'SP Ref' },
+          { connectionid: 'conn1', connectorid: 'shared_sharepointonline', connectionreferencedisplayname: 'SP Ref 2' },
+          { connectionid: 'conn2', connectorid: 'shared_sql', connectionreferencedisplayname: 'SQL Ref' },
+        ],
+      }),
+    };
+    const result = await loadConnections(
+      { ...enabled, enabledForPowerPlatformAPI: false },
+      new AbortController().signal,
+    );
+    expect(result.map((c) => c.id)).toEqual(['conn1', 'conn2']);
+    expect(result[0]).toEqual({
+      id: 'conn1',
+      displayName: 'SP Ref',
+      connector: 'shared_sharepointonline',
+      owner: '',
+    });
   });
 
-  it('returns parsed connections when enabled', async () => {
+  it('uses the Power Platform API when the connection is enabled', async () => {
     (window as unknown as { powerplatformAPI: unknown }).powerplatformAPI = {
       Connectivity: { Get: vi.fn().mockResolvedValue({ value: [{ name: 'c1' }] }) },
     };
     const result = await loadConnections(enabled, new AbortController().signal);
     expect(result[0].id).toBe('c1');
+  });
+
+  it('falls back to Dataverse when the Power Platform API returns nothing', async () => {
+    (window as unknown as { powerplatformAPI: unknown }).powerplatformAPI = {
+      Connectivity: { Get: vi.fn().mockResolvedValue({ value: [] }) },
+    };
+    (window as unknown as { dataverseAPI: unknown }).dataverseAPI = {
+      fetchXmlQuery: vi.fn().mockResolvedValue({
+        value: [{ connectionid: 'conn9', connectorid: 'shared_x', connectionreferencedisplayname: 'X' }],
+      }),
+    };
+    const result = await loadConnections(enabled, new AbortController().signal);
+    expect(result.map((c) => c.id)).toEqual(['conn9']);
   });
 });

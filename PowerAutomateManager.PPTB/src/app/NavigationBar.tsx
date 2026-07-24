@@ -1,5 +1,6 @@
 import type { CategoryId } from '../models/types';
 import { NAV_ITEMS } from '../categories/registry';
+import { NavIcons } from './NavIcons';
 
 interface NavigationBarProps {
   active: CategoryId;
@@ -15,9 +16,11 @@ export function NavigationBar({ active, onSelect }: NavigationBarProps): JSX.Ele
           type="button"
           className={item.id === active ? 'active' : ''}
           aria-current={item.id === active}
+          aria-label={item.label}
+          title={item.label}
           onClick={() => onSelect(item.id)}
         >
-          {item.label}
+          {NavIcons[item.id]}
         </button>
       ))}
     </nav>

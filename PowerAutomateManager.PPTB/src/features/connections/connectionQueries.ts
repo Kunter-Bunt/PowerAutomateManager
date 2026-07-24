@@ -37,17 +37,56 @@ export function parseConnections(response: unknown): ParsedConnection[] {
   });
 }
 
+/**
+ * Lists connections. `window.powerplatformAPI` requires a dedicated Entra app
+ * registration plus the "Enabled for Power Platform" toggle on the connection
+ * (see PPTB docs). Most interactive-login connections do not have that, so we
+ * only use the Power Platform API when it is enabled and fall back to a
+ * Dataverse-derived list (from connection references) that works everywhere.
+ */
 export async function loadConnections(
   connection: Connection,
-  _signal: AbortSignal,
+  signal: AbortSignal,
 ): Promise<ParsedConnection[]> {
-  if (!connection.enabledForPowerPlatformAPI) {
-    throw new Error(
-      'This connection is not enabled for the Power Platform API. Configure an app registration and enable it in the connection settings to view Connections.',
-    );
+  if (connection.enabledForPowerPlatformAPI) {
+    try {
+      const response = await pp.get('Connectivity', 'connections?api-version=2024-10-01');
+      const parsed = parseConnections(response);
+      if (parsed.length > 0) return parsed;
+    } catch {
+      // Fall through to the Dataverse-derived list below.
+    }
   }
-  const response = await pp.get('Connectivity', 'connections?api-version=2024-10-01');
-  return parseConnections(response);
+  return loadConnectionsFromDataverse(signal);
+}
+
+const CONNECTIONS_FROM_REFERENCES_FETCH = `
+<fetch distinct="true">
+  <entity name="connectionreference">
+    <attribute name="connectionid" />
+    <attribute name="connectorid" />
+    <attribute name="connectionreferencedisplayname" />
+  </entity>
+</fetch>`;
+
+/** Derives the distinct connections in use from Dataverse connection references. */
+export async function loadConnectionsFromDataverse(
+  signal: AbortSignal,
+): Promise<ParsedConnection[]> {
+  const rows = await dv.fetchAll(CONNECTIONS_FROM_REFERENCES_FETCH, signal);
+  const byConnection = new Map<string, ParsedConnection>();
+  for (const row of rows) {
+    const id = str(row, 'connectionid');
+    if (!id || byConnection.has(id)) continue;
+    const connector = str(row, 'connectorid');
+    byConnection.set(id, {
+      id,
+      displayName: str(row, 'connectionreferencedisplayname') || connector || id,
+      connector,
+      owner: '',
+    });
+  }
+  return [...byConnection.values()];
 }
 
 const CONNECTION_REFERENCE_FETCH = `

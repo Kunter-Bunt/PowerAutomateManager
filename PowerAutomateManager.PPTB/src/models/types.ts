@@ -30,6 +30,16 @@ export interface ActionContext {
   refresh: () => void;
 }
 
+export interface ActionEnabledContext {
+  connection: Connection | null;
+}
+
+export interface CategoryNotice {
+  level: 'info' | 'warning' | 'error';
+  message: string;
+  link?: { href: string; label: string };
+}
+
 export type ActionResult =
   | { ok: true }
   | { ok: false; failures: { id: string; reason: string }[] };
@@ -38,7 +48,7 @@ export interface ToolbarAction {
   id: string;
   label: string;
   scope: 'common' | 'category';
-  enabled(selection: ListItem[]): boolean;
+  enabled(selection: ListItem[], ctx?: ActionEnabledContext): boolean;
   run(selection: ListItem[], ctx: ActionContext): Promise<ActionResult>;
 }
 
@@ -81,6 +91,7 @@ export interface CategoryModule<TRecord = unknown> {
   getDetails(item: ListItem<TRecord>): Promise<DetailField[]>;
   getRowStyle?(item: ListItem<TRecord>): RowStyle | undefined;
   reloadItem?(id: string, ctx: LoadContext): Promise<ListItem<TRecord> | null>;
+  getNotice?(connection: Connection | null): CategoryNotice | null;
   toolbarActions?: ToolbarAction[];
   groupingOptions?: GroupingOption[];
   filters?: FilterControl[];

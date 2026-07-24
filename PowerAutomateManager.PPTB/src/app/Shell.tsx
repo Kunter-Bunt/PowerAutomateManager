@@ -13,7 +13,14 @@ import { clearCache } from '../state/categoryCache';
 import { getCategory } from '../categories/registry';
 import { applyTheme } from '../lib/theme';
 import * as host from '../services/toolboxHost';
-import type { CategoryId, GroupingOption, ListItem, LoadState, ToolbarAction } from '../models/types';
+import type {
+  CategoryId,
+  CategoryNotice,
+  GroupingOption,
+  ListItem,
+  LoadState,
+  ToolbarAction,
+} from '../models/types';
 import type { Connection } from '../models/hostApi';
 
 export function Shell(): JSX.Element {
@@ -85,6 +92,11 @@ export function Shell(): JSX.Element {
         .map((id) => groupingOptions.find((option) => option.id === id))
         .filter((option): option is GroupingOption => Boolean(option)),
     [grouping, groupingOptions],
+  );
+
+  const notice = useMemo<CategoryNotice | null>(
+    () => (module?.getNotice ? module.getNotice(connection) : null),
+    [module, connection],
   );
 
   const handleSelectCategory = useCallback((id: CategoryId) => {
@@ -179,6 +191,7 @@ export function Shell(): JSX.Element {
       <Toolbar
         selection={selectedItems}
         hasItems={visibleItems.length > 0}
+        connection={connection}
         categoryActions={module?.toolbarActions ?? []}
         onRefresh={refresh}
         onSelectAll={handleSelectAll}
@@ -199,6 +212,7 @@ export function Shell(): JSX.Element {
       />
       <ListRegion
         state={state}
+        notice={notice}
         visibleItems={visibleItems}
         selection={selection}
         busyIds={busyIds}
@@ -216,6 +230,7 @@ export function Shell(): JSX.Element {
 
 interface ListRegionProps {
   state: LoadState;
+  notice: CategoryNotice | null;
   visibleItems: ListItem[];
   selection: SelectionModel;
   busyIds: Set<string>;
@@ -228,6 +243,7 @@ interface ListRegionProps {
 
 function ListRegion({
   state,
+  notice,
   visibleItems,
   selection,
   busyIds,
@@ -237,8 +253,9 @@ function ListRegion({
   onDeselectIds,
   onRetry,
 }: ListRegionProps): JSX.Element {
+  let content: JSX.Element;
   if (state.status === 'loading') {
-    return (
+    content = (
       <div className="pam-list">
         <div className="pam-list-loading">
           <Spinner label="Loading" />
@@ -246,9 +263,8 @@ function ListRegion({
         </div>
       </div>
     );
-  }
-  if (state.status === 'error') {
-    return (
+  } else if (state.status === 'error') {
+    content = (
       <div className="pam-list pam-state error">
         <p>{state.message}</p>
         <button type="button" className="pam-btn" onClick={onRetry}>
@@ -256,12 +272,10 @@ function ListRegion({
         </button>
       </div>
     );
-  }
-  if (state.status === 'empty' || visibleItems.length === 0) {
-    return <div className="pam-list pam-state">No objects to display.</div>;
-  }
-  if (groupingOptions.length > 0) {
-    return (
+  } else if (state.status === 'empty' || visibleItems.length === 0) {
+    content = <div className="pam-list pam-state">No objects to display.</div>;
+  } else if (groupingOptions.length > 0) {
+    content = (
       <GroupedList
         items={visibleItems}
         groupingOptions={groupingOptions}
@@ -272,6 +286,33 @@ function ListRegion({
         onDeselectIds={onDeselectIds}
       />
     );
+  } else {
+    content = (
+      <ObjectList items={visibleItems} selection={selection} busyIds={busyIds} onRowClick={onRowClick} />
+    );
   }
-  return <ObjectList items={visibleItems} selection={selection} busyIds={busyIds} onRowClick={onRowClick} />;
+
+  return (
+    <div className="pam-list-wrap">
+      {notice && (
+        <div className={`pam-banner pam-banner-${notice.level}`} role="status">
+          {notice.message}
+          {notice.link && (
+            <>
+              {' '}
+              <a
+                className="pam-banner-link"
+                href={notice.link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {notice.link.label}
+              </a>
+            </>
+          )}
+        </div>
+      )}
+      {content}
+    </div>
+  );
 }

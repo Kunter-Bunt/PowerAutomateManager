@@ -13,6 +13,9 @@
   --pam-negative-fg: #a4262c;
   --pam-neutral-bg: #f3f2f1;
   --pam-neutral-fg: #605e5c;
+  --pam-warning-bg: #fff4ce;
+  --pam-warning-fg: #6b5900;
+  --pam-warning-border: #f2d98a;
 }
 
 .theme-dark {
@@ -29,6 +32,9 @@
   --pam-negative-fg: #f1707b;
   --pam-neutral-bg: #292827;
   --pam-neutral-fg: #a19f9d;
+  --pam-warning-bg: #3d3308;
+  --pam-warning-fg: #f5d97a;
+  --pam-warning-border: #6b5900;
 }
 
 * {
@@ -49,7 +55,7 @@ body {
 
 .pam-shell {
   display: grid;
-  grid-template-columns: 200px 1fr 320px;
+  grid-template-columns: 48px 1fr 320px;
   grid-template-rows: auto auto 1fr;
   grid-template-areas:
     'nav toolbar toolbar'
@@ -61,7 +67,11 @@ body {
 .pam-nav {
   grid-area: nav;
   border-right: 1px solid var(--pam-border);
-  padding: 8px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
 }
 .pam-toolbar {
   grid-area: toolbar;
@@ -79,10 +89,17 @@ body {
   gap: 8px;
   align-items: center;
 }
-.pam-list {
+.pam-list-wrap {
   grid-area: list;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   border-right: 1px solid var(--pam-border);
+}
+.pam-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 .pam-details {
   grid-area: details;
@@ -92,23 +109,22 @@ body {
 
 .pam-nav button {
   display: flex;
-  width: 100%;
+  width: 40px;
+  height: 40px;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  justify-content: center;
   border: none;
   background: none;
   color: inherit;
   cursor: pointer;
   border-radius: 4px;
-  text-align: left;
 }
 .pam-nav button.active,
 .pam-nav button:hover {
   background: var(--pam-hover);
 }
 .pam-nav button.active {
-  font-weight: 600;
+  color: var(--pam-accent);
 }
 
 .pam-btn {
@@ -351,4 +367,30 @@ body {
 }
 .pam-row-busy {
   margin-left: 4px;
+}
+
+/* Category notice banner */
+.pam-banner {
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  border-bottom: 1px solid transparent;
+}
+.pam-banner-warning {
+  background: var(--pam-warning-bg);
+  color: var(--pam-warning-fg);
+  border-bottom-color: var(--pam-warning-border);
+}
+.pam-banner-info {
+  background: var(--pam-neutral-bg);
+  color: var(--pam-neutral-fg);
+}
+.pam-banner-error {
+  background: var(--pam-negative-bg);
+  color: var(--pam-negative-fg);
+}
+.pam-banner-link {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 600;
 }
