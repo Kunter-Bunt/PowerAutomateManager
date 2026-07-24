@@ -10,6 +10,7 @@ export const STATUS_OFF = 1;
 export interface SolutionRef {
   id: string;
   name: string;
+  uniqueName: string;
 }
 
 export interface FlowIndex {

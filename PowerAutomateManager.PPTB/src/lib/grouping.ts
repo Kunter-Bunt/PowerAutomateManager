@@ -14,14 +14,18 @@ export function buildForest(items: ListItem[], groupings: GroupingOption[]): Gro
   if (groupings.length === 0) return [];
   const [head, ...rest] = groupings;
 
-  const buckets = new Map<string, { label: string; items: ListItem[] }>();
+  const buckets = new Map<string, { label: string; sortLast: boolean; items: ListItem[] }>();
   for (const item of items) {
     for (const groupKey of head.keysFor(item)) {
       const bucket = buckets.get(groupKey.key);
       if (bucket) {
         bucket.items.push(item);
       } else {
-        buckets.set(groupKey.key, { label: groupKey.label, items: [item] });
+        buckets.set(groupKey.key, {
+          label: groupKey.label,
+          sortLast: groupKey.sortLast ?? false,
+          items: [item],
+        });
       }
     }
   }
@@ -31,10 +35,14 @@ export function buildForest(items: ListItem[], groupings: GroupingOption[]): Gro
     nodes.push({
       key,
       label: bucket.label,
+      sortLast: bucket.sortLast,
       children: buildForest(bucket.items, rest),
       itemIds: uniqueIds(bucket.items),
     });
   }
-  nodes.sort((a, b) => a.label.localeCompare(b.label));
+  nodes.sort(
+    (a, b) =>
+      Number(a.sortLast ?? false) - Number(b.sortLast ?? false) || a.label.localeCompare(b.label),
+  );
   return nodes;
 }

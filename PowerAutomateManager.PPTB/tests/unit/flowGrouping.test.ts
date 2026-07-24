@@ -21,7 +21,13 @@ function flow(id: string, statecode: number, ownerValue: string, ownerName: stri
 beforeEach(() => {
   setFlowIndex({
     solutionsByFlow: new Map([
-      ['1', [{ id: 'S1', name: 'Sol One' }, { id: 'S2', name: 'Sol Two' }]],
+      [
+        '1',
+        [
+          { id: 'S1', name: 'Sol One', uniqueName: 'sol_one' },
+          { id: 'S2', name: 'Sol Two', uniqueName: 'sol_two' },
+        ],
+      ],
     ]),
     connRefByLogical: new Map(),
   });
@@ -33,9 +39,9 @@ describe('flow grouping options', () => {
     expect(keys.map((k) => k.key)).toEqual(['S1', 'S2']);
   });
 
-  it('groups flows with no solution under a No solution bucket', () => {
+  it('groups flows with no solution under a None bucket ordered last', () => {
     const keys = bySolution.keysFor(flow('99', 1, 'u1', 'User'));
-    expect(keys).toEqual([{ key: '__none__', label: 'No solution' }]);
+    expect(keys).toEqual([{ key: '__none__', label: 'None', sortLast: true }]);
   });
 
   it('groups by On/Off state', () => {

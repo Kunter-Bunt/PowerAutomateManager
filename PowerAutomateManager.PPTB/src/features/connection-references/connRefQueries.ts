@@ -1,5 +1,6 @@
 import * as dv from '../../services/dataverseClient';
 import { str } from '../../lib/records';
+import { isDefaultSolution } from '../../lib/solutions';
 import { parseConnectionReferenceLogicalNames } from '../../lib/clientdata';
 import type { SolutionRef } from './connRefState';
 
@@ -79,10 +80,11 @@ export async function buildSolutionsByRef(
   for (const row of rows) {
     const refId = str(row, 'objectid');
     const solutionId = str(row, 'sol.solutionid');
-    const name = str(row, 'sol.friendlyname') || str(row, 'sol.uniquename');
-    if (!refId || !solutionId) continue;
+    const uniqueName = str(row, 'sol.uniquename');
+    if (!refId || !solutionId || isDefaultSolution(uniqueName)) continue;
+    const name = str(row, 'sol.friendlyname') || uniqueName;
     const list = map.get(refId) ?? [];
-    list.push({ id: solutionId, name });
+    list.push({ id: solutionId, name, uniqueName });
     map.set(refId, list);
   }
   return map;

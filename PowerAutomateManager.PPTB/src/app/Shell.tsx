@@ -6,8 +6,10 @@ import { ObjectList, type RowClickModifiers } from './ObjectList';
 import { GroupedList } from './GroupedList';
 import { DetailsPanel } from './DetailsPanel';
 import { PickerHost } from './PickerHost';
+import { Spinner } from './Spinner';
 import { SelectionModel } from '../state/SelectionModel';
 import { useCategoryData } from '../state/useCategoryData';
+import { clearCache } from '../state/categoryCache';
 import { getCategory } from '../categories/registry';
 import { applyTheme } from '../lib/theme';
 import * as host from '../services/toolboxHost';
@@ -21,6 +23,7 @@ export function Shell(): JSX.Element {
   const [filterState, setFilterState] = useState<Record<string, string[]>>({});
   const [grouping, setGrouping] = useState<string[]>([]);
   const [selection, setSelection] = useState<SelectionModel>(new SelectionModel());
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -44,7 +47,7 @@ export function Shell(): JSX.Element {
   const filterControls = useMemo(() => module?.filters ?? [], [module]);
   const groupingOptions = useMemo(() => module?.groupingOptions ?? [], [module]);
 
-  const { state, visibleItems, refresh } = useCategoryData(
+  const { state, visibleItems, refresh, applyItemUpdates } = useCategoryData(
     activeCategory,
     connection,
     searchTerm,
@@ -62,7 +65,9 @@ export function Shell(): JSX.Element {
   }, [readyItems]);
 
   useEffect(() => {
+    clearCache();
     setSelection(new SelectionModel());
+    setBusyIds(new Set());
     setSearchTerm('');
     setFilterState({});
     setGrouping([]);
@@ -108,22 +113,64 @@ export function Shell(): JSX.Element {
 
   const handleClear = useCallback(() => setSelection(new SelectionModel()), []);
 
+  const reloadTargets = useCallback(
+    async (target: ListItem[]) => {
+      if (!connection || !module?.reloadItem) return;
+      const controller = new AbortController();
+      const reloadItem = module.reloadItem;
+      const updates = await Promise.all(
+        target.map(async (item) => {
+          try {
+            const fresh = await reloadItem(item.id, { connection, signal: controller.signal });
+            return { id: item.id, item: fresh };
+          } catch {
+            // Leave the row unchanged if its per-object refresh fails.
+            return null;
+          }
+        }),
+      );
+      const applied = updates.filter(
+        (u): u is { id: string; item: ListItem | null } => u !== null,
+      );
+      if (applied.length > 0) applyItemUpdates(applied);
+    },
+    [connection, module, applyItemUpdates],
+  );
+
   const handleRunAction = useCallback(
     async (action: ToolbarAction) => {
       if (!connection) return;
-      const result = await action.run(selectedItems, { connection, refresh });
-      if (result.ok) {
-        await host.notify({ title: action.label, body: 'Completed successfully.', type: 'success' });
-      } else {
-        await host.notify({
-          title: action.label,
-          body: `${result.failures.length} item(s) failed.`,
-          type: 'warning',
+      // Concurrency guard: never start a second operation on a busy object.
+      const target = selectedItems.filter((item) => !busyIds.has(item.id));
+      if (target.length === 0) return;
+      const targetIds = target.map((item) => item.id);
+      setBusyIds((prev) => new Set([...prev, ...targetIds]));
+
+      try {
+        const result = await action.run(target, { connection, refresh });
+        if (result.ok) {
+          await host.notify({
+            title: action.label,
+            body: 'Completed successfully.',
+            type: 'success',
+          });
+        } else {
+          await host.notify({
+            title: action.label,
+            body: `${result.failures.length} item(s) failed.`,
+            type: 'warning',
+          });
+        }
+        await reloadTargets(target);
+      } finally {
+        setBusyIds((prev) => {
+          const next = new Set(prev);
+          targetIds.forEach((id) => next.delete(id));
+          return next;
         });
       }
-      refresh();
     },
-    [connection, selectedItems, refresh],
+    [connection, selectedItems, busyIds, refresh, reloadTargets],
   );
 
   return (
@@ -154,6 +201,7 @@ export function Shell(): JSX.Element {
         state={state}
         visibleItems={visibleItems}
         selection={selection}
+        busyIds={busyIds}
         groupingOptions={selectedGroupingOptions}
         onRowClick={handleRowClick}
         onSelectIds={(ids) => setSelection((current) => current.selectIds(ids))}
@@ -170,6 +218,7 @@ interface ListRegionProps {
   state: LoadState;
   visibleItems: ListItem[];
   selection: SelectionModel;
+  busyIds: Set<string>;
   groupingOptions: GroupingOption[];
   onRowClick: (item: ListItem, modifiers: RowClickModifiers) => void;
   onSelectIds: (ids: string[]) => void;
@@ -181,6 +230,7 @@ function ListRegion({
   state,
   visibleItems,
   selection,
+  busyIds,
   groupingOptions,
   onRowClick,
   onSelectIds,
@@ -188,7 +238,14 @@ function ListRegion({
   onRetry,
 }: ListRegionProps): JSX.Element {
   if (state.status === 'loading') {
-    return <div className="pam-list pam-state">Loading…</div>;
+    return (
+      <div className="pam-list">
+        <div className="pam-list-loading">
+          <Spinner label="Loading" />
+          <span>Loading…</span>
+        </div>
+      </div>
+    );
   }
   if (state.status === 'error') {
     return (
@@ -209,11 +266,12 @@ function ListRegion({
         items={visibleItems}
         groupingOptions={groupingOptions}
         selection={selection}
+        busyIds={busyIds}
         onRowClick={onRowClick}
         onSelectIds={onSelectIds}
         onDeselectIds={onDeselectIds}
       />
     );
   }
-  return <ObjectList items={visibleItems} selection={selection} onRowClick={onRowClick} />;
+  return <ObjectList items={visibleItems} selection={selection} busyIds={busyIds} onRowClick={onRowClick} />;
 }

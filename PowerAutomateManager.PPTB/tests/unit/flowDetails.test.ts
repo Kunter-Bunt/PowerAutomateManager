@@ -22,7 +22,7 @@ const flow: ListItem = {
 
 beforeEach(() => {
   setFlowIndex({
-    solutionsByFlow: new Map([['f1', [{ id: 'S1', name: 'Sol One' }]]]),
+    solutionsByFlow: new Map([['f1', [{ id: 'S1', name: 'Sol One', uniqueName: 'sol_one' }]]]),
     connRefByLogical: new Map([['new_sharepoint', 'SharePoint']]),
   });
 });

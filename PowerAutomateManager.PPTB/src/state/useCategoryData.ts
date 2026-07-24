@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CategoryId, FilterControl, ListItem, LoadState } from '../models/types';
 import type { Connection } from '../models/hostApi';
 import { getCategory } from '../categories/registry';
+import { getCached, invalidateCached, setCached } from './categoryCache';
 
 function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError';
@@ -27,6 +28,7 @@ export interface CategoryData {
   state: LoadState;
   visibleItems: ListItem[];
   refresh: () => void;
+  applyItemUpdates: (updates: { id: string; item: ListItem | null }[]) => void;
 }
 
 /**
@@ -56,6 +58,13 @@ export function useCategoryData(
       return;
     }
 
+    // Cache hit: show the previously loaded list immediately, no reload.
+    const cached = getCached(connection.id, categoryId);
+    if (cached) {
+      setState(cached.length === 0 ? { status: 'empty' } : { status: 'ready', items: cached });
+      return;
+    }
+
     const controller = new AbortController();
     setState({ status: 'loading' });
 
@@ -63,6 +72,7 @@ export function useCategoryData(
       .loadItems({ connection, signal: controller.signal })
       .then((items) => {
         if (controller.signal.aborted) return;
+        setCached(connection.id, categoryId, items);
         setState(items.length === 0 ? { status: 'empty' } : { status: 'ready', items });
       })
       .catch((error: unknown) => {
@@ -76,7 +86,27 @@ export function useCategoryData(
     return () => controller.abort();
   }, [categoryId, connection, reloadToken]);
 
-  const refresh = useCallback(() => setReloadToken((token) => token + 1), []);
+  const refresh = useCallback(() => {
+    if (connection) invalidateCached(connection.id, categoryId);
+    setReloadToken((token) => token + 1);
+  }, [connection, categoryId]);
+
+  const applyItemUpdates = useCallback(
+    (updates: { id: string; item: ListItem | null }[]) => {
+      setState((prev) => {
+        if (prev.status !== 'ready') return prev;
+        const byId = new Map(prev.items.map((i) => [i.id, i]));
+        for (const update of updates) {
+          if (update.item === null) byId.delete(update.id);
+          else byId.set(update.id, update.item);
+        }
+        const items = [...byId.values()];
+        if (connection) setCached(connection.id, categoryId, items);
+        return items.length === 0 ? { status: 'empty' } : { status: 'ready', items };
+      });
+    },
+    [connection, categoryId],
+  );
 
   const visibleItems = useMemo(() => {
     if (state.status !== 'ready') return [];
@@ -87,5 +117,5 @@ export function useCategoryData(
     );
   }, [state, searchTerm, filterControls, filterState]);
 
-  return { state, visibleItems, refresh };
+  return { state, visibleItems, refresh, applyItemUpdates };
 }

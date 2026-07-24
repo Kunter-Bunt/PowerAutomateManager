@@ -1,4 +1,5 @@
 import * as dv from '../../services/dataverseClient';
+import { isDefaultSolution } from '../../lib/solutions';
 import { str, type SolutionRef } from './flowState';
 
 const FLOW_FETCH = `
@@ -58,10 +59,11 @@ export async function loadSolutionMembership(
   for (const row of rows) {
     const flowId = str(row, 'objectid');
     const solutionId = str(row, 'sol.solutionid');
-    const name = str(row, 'sol.friendlyname') || str(row, 'sol.uniquename');
-    if (!flowId || !solutionId) continue;
+    const uniqueName = str(row, 'sol.uniquename');
+    if (!flowId || !solutionId || isDefaultSolution(uniqueName)) continue;
+    const name = str(row, 'sol.friendlyname') || uniqueName;
     const list = map.get(flowId) ?? [];
-    list.push({ id: solutionId, name });
+    list.push({ id: solutionId, name, uniqueName });
     map.set(flowId, list);
   }
   return map;

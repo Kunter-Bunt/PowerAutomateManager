@@ -6,7 +6,7 @@ const bySolution: GroupingOption = {
   label: 'Solution',
   keysFor: (item: ListItem) => {
     const solutions = flowIndex.solutionsByFlow.get(item.id) ?? [];
-    if (solutions.length === 0) return [{ key: '__none__', label: 'No solution' }];
+    if (solutions.length === 0) return [{ key: '__none__', label: 'None', sortLast: true }];
     return solutions.map((s) => ({ key: s.id, label: s.name }));
   },
 };

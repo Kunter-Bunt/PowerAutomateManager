@@ -3,11 +3,13 @@ import { buildForest } from '../lib/grouping';
 import type { GroupingOption, GroupNode, ListItem } from '../models/types';
 import type { SelectionModel } from '../state/SelectionModel';
 import type { RowClickModifiers } from './ObjectList';
+import { Spinner } from './Spinner';
 
 interface GroupedListProps {
   items: ListItem[];
   groupingOptions: GroupingOption[];
   selection: SelectionModel;
+  busyIds: Set<string>;
   onRowClick: (item: ListItem, modifiers: RowClickModifiers) => void;
   onSelectIds: (ids: string[]) => void;
   onDeselectIds: (ids: string[]) => void;
@@ -16,10 +18,12 @@ interface GroupedListProps {
 function LeafRow({
   item,
   selection,
+  busyIds,
   onRowClick,
 }: {
   item: ListItem;
   selection: SelectionModel;
+  busyIds: Set<string>;
   onRowClick: (item: ListItem, modifiers: RowClickModifiers) => void;
 }): JSX.Element {
   const accent = item.style?.accent;
@@ -48,6 +52,11 @@ function LeafRow({
           {item.style.badge}
         </span>
       )}
+      {busyIds.has(item.id) && (
+        <span className="pam-row-busy">
+          <Spinner small label="Working" />
+        </span>
+      )}
     </div>
   );
 }
@@ -57,6 +66,7 @@ function GroupNodeView({
   depth,
   itemsById,
   selection,
+  busyIds,
   onRowClick,
   onSelectIds,
   onDeselectIds,
@@ -65,6 +75,7 @@ function GroupNodeView({
   depth: number;
   itemsById: Map<string, ListItem>;
   selection: SelectionModel;
+  busyIds: Set<string>;
   onRowClick: (item: ListItem, modifiers: RowClickModifiers) => void;
   onSelectIds: (ids: string[]) => void;
   onDeselectIds: (ids: string[]) => void;
@@ -102,6 +113,7 @@ function GroupNodeView({
                   depth={depth + 1}
                   itemsById={itemsById}
                   selection={selection}
+                  busyIds={busyIds}
                   onRowClick={onRowClick}
                   onSelectIds={onSelectIds}
                   onDeselectIds={onDeselectIds}
@@ -111,7 +123,7 @@ function GroupNodeView({
                 const item = itemsById.get(id);
                 return item ? (
                   <div key={id} style={{ paddingLeft: `${(depth + 1) * 16}px` }}>
-                    <LeafRow item={item} selection={selection} onRowClick={onRowClick} />
+                    <LeafRow item={item} selection={selection} busyIds={busyIds} onRowClick={onRowClick} />
                   </div>
                 ) : null;
               })}
@@ -125,6 +137,7 @@ export function GroupedList({
   items,
   groupingOptions,
   selection,
+  busyIds,
   onRowClick,
   onSelectIds,
   onDeselectIds,
@@ -141,6 +154,7 @@ export function GroupedList({
           depth={0}
           itemsById={itemsById}
           selection={selection}
+          busyIds={busyIds}
           onRowClick={onRowClick}
           onSelectIds={onSelectIds}
           onDeselectIds={onDeselectIds}

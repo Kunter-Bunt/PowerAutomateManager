@@ -17,7 +17,7 @@ const ref: ListItem = {
 beforeEach(() => {
   setConnRefIndex({
     flowsByLogical: new Map([['new_sp', ['Flow A', 'Flow B']]]),
-    solutionsByRef: new Map([['r1', [{ id: 'S1', name: 'Sol One' }]]]),
+    solutionsByRef: new Map([['r1', [{ id: 'S1', name: 'Sol One', uniqueName: 'sol_one' }]]]),
     connectionsByConnector: new Map(),
   });
 });

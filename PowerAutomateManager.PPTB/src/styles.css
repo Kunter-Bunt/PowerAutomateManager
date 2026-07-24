@@ -320,3 +320,35 @@ body {
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* Spinner + busy rows */
+.pam-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--pam-border);
+  border-top-color: var(--pam-accent);
+  border-radius: 50%;
+  animation: pam-spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+.pam-spinner-small {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+@keyframes pam-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.pam-list-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  color: var(--pam-muted);
+}
+.pam-row-busy {
+  margin-left: 4px;
+}

@@ -17,7 +17,7 @@ const ref = (id: string, connector: string, ismanaged: boolean): ListItem => ({
 beforeEach(() => {
   setConnRefIndex({
     flowsByLogical: new Map(),
-    solutionsByRef: new Map([['1', [{ id: 'S1', name: 'Sol One' }]]]),
+    solutionsByRef: new Map([['1', [{ id: 'S1', name: 'Sol One', uniqueName: 'sol_one' }]]]),
     connectionsByConnector: new Map(),
   });
 });
@@ -26,7 +26,7 @@ describe('connection reference grouping', () => {
   it('groups by solution', () => {
     expect(bySolution.keysFor(ref('1', 'shared_a', false))).toEqual([{ key: 'S1', label: 'Sol One' }]);
     expect(bySolution.keysFor(ref('2', 'shared_a', false))).toEqual([
-      { key: '__none__', label: 'No solution' },
+      { key: '__none__', label: 'None', sortLast: true },
     ]);
   });
 

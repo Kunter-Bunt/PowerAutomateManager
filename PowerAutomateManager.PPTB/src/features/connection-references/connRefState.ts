@@ -5,6 +5,7 @@ export const COMPONENTTYPE_CONNECTION_REFERENCE = 10059;
 export interface SolutionRef {
   id: string;
   name: string;
+  uniqueName: string;
 }
 
 export interface ConnectionOption {

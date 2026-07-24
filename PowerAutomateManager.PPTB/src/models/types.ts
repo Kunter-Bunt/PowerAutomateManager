@@ -45,6 +45,7 @@ export interface ToolbarAction {
 export interface GroupKey {
   key: string;
   label: string;
+  sortLast?: boolean;
 }
 
 export interface GroupingOption {
@@ -58,6 +59,7 @@ export interface GroupNode {
   label: string;
   children: GroupNode[];
   itemIds: string[];
+  sortLast?: boolean;
 }
 
 export interface FilterControl {
@@ -78,6 +80,7 @@ export interface CategoryModule<TRecord = unknown> {
   loadItems(ctx: LoadContext): Promise<ListItem<TRecord>[]>;
   getDetails(item: ListItem<TRecord>): Promise<DetailField[]>;
   getRowStyle?(item: ListItem<TRecord>): RowStyle | undefined;
+  reloadItem?(id: string, ctx: LoadContext): Promise<ListItem<TRecord> | null>;
   toolbarActions?: ToolbarAction[];
   groupingOptions?: GroupingOption[];
   filters?: FilterControl[];

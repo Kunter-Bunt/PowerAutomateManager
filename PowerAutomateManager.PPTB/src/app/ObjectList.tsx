@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { ListItem } from '../models/types';
 import type { SelectionModel } from '../state/SelectionModel';
+import { Spinner } from './Spinner';
 
 export interface RowClickModifiers {
   ctrl: boolean;
@@ -11,12 +12,13 @@ export interface RowClickModifiers {
 interface ObjectListProps {
   items: ListItem[];
   selection: SelectionModel;
+  busyIds: Set<string>;
   onRowClick: (item: ListItem, modifiers: RowClickModifiers) => void;
 }
 
 const ROW_HEIGHT = 33;
 
-export function ObjectList({ items, selection, onRowClick }: ObjectListProps): JSX.Element {
+export function ObjectList({ items, selection, busyIds, onRowClick }: ObjectListProps): JSX.Element {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
@@ -74,6 +76,11 @@ export function ObjectList({ items, selection, onRowClick }: ObjectListProps): J
                     .join(' ')}
                 >
                   {item.style.badge}
+                </span>
+              )}
+              {busyIds.has(item.id) && (
+                <span className="pam-row-busy">
+                  <Spinner small label="Working" />
                 </span>
               )}
             </div>

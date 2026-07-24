@@ -3,6 +3,7 @@ import {
   buildSolutionsByRef,
   loadConnectionReferences,
 } from './connRefQueries';
+import * as dv from '../../services/dataverseClient';
 import {
   setConnRefIndex,
   type ConnectionOption,
@@ -70,6 +71,27 @@ export const connectionReferencesModule: CategoryModule = {
   },
 
   getDetails: connRefDetails,
+
+  async reloadItem(id: string): Promise<ListItem | null> {
+    const record = await dv.retrieve('connectionreference', id, [
+      'connectionreferencedisplayname',
+      'connectionreferencelogicalname',
+      'connectorid',
+      'connectionid',
+      'ismanaged',
+    ]);
+    const name =
+      str(record, 'connectionreferencedisplayname') ||
+      str(record, 'connectionreferencelogicalname');
+    return {
+      id,
+      primaryText: name,
+      secondaryText: str(record, 'connectorid'),
+      searchText: name,
+      raw: record,
+    };
+  },
+
   groupingOptions: connRefGroupingOptions,
   filters: connRefFilters,
   toolbarActions: connRefActions,

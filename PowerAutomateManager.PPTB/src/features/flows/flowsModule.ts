@@ -3,6 +3,7 @@ import {
   loadFlows,
   loadSolutionMembership,
 } from './flowQueries';
+import * as dv from '../../services/dataverseClient';
 import { setFlowIndex, str } from './flowState';
 import { flowDetails } from './flowDetails';
 import { flowRowStyle } from './flowRowStyle';
@@ -36,6 +37,19 @@ export const flowsModule: CategoryModule = {
 
   getDetails: flowDetails,
   getRowStyle: flowRowStyle,
+
+  async reloadItem(id: string): Promise<ListItem | null> {
+    const record = await dv.retrieve('workflow', id, [
+      'name',
+      'statecode',
+      'statuscode',
+      'ownerid',
+      'ismanaged',
+    ]);
+    const name = str(record, 'name');
+    return { id, primaryText: name, searchText: name, raw: record };
+  },
+
   groupingOptions: flowGroupingOptions,
   filters: flowFilters,
   toolbarActions: flowActions,
