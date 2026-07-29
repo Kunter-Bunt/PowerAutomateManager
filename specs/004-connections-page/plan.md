@@ -6,9 +6,9 @@
 
 ## Summary
 
-Specialize the **Connections** category of the shell (001). Implement the connections `CategoryModule`: list connections via the Power Platform API, render a details form (name, owner, flows using it), group by Owner/Connector into a selectable forest, expose no category filters (only the shell's search box), and provide a Share toolbar action that lets the user select Users, Teams, and S2S Apps as targets and grants them access to the selected connections with per-connection success/failure reporting.
+Specialize the **Connections** category of the shell (001). Implement the connections `CategoryModule`: list connections via the Power Platform API, render a details form (name, owner, flows using it), group by Owner/Connector into a selectable forest, expose no category filters (only the shell's search box), and provide a Share toolbar action that lets the user select Service Principals as targets and grants them access to the selected connections using each target's Enterprise Application ID, with per-connection success/failure reporting.
 
-Technical approach: a `connectionsModule` implementing `CategoryModule`, backed by `powerPlatformClient` (Connectivity namespace) for connection data and sharing, plus reuse of the connection↔connection-reference↔flow index (002/003) for "flows using it". Bulk share uses `lib/batch.ts`.
+Technical approach: a `connectionsModule` implementing `CategoryModule`, backed by `powerPlatformClient` (Connectivity namespace) for connection data and the Power Apps for Admins namespace for connection permissions, plus reuse of the connection↔connection-reference↔flow index (002/003) for "flows using it". Bulk share uses `lib/batch.ts` and targets only Service Principals identified by their Enterprise Application IDs.
 
 ## Technical Context
 
@@ -16,9 +16,9 @@ Technical approach: a `connectionsModule` implementing `CategoryModule`, backed 
 
 **Primary Dependencies**: React 18, `@pptb/types`, shell adapters (`powerPlatformClient`, `dataverseClient`, `toolboxHost`, `batch`), shared forest builder. No new runtime deps.
 
-**Storage**: None app-owned. Reads connections and grants permissions via `powerplatformAPI`; reads Dataverse for the flows-using cross-reference.
+**Storage**: None app-owned. Reads connections via `powerplatformAPI.Connectivity`, reads connection role assignments and grants permissions via the Power Apps for Admins API, and reads Dataverse for the flows-using cross-reference.
 
-**Testing**: Vitest + RTL; mocked `powerplatformAPI` (connections + permissions) and `dataverseAPI` (connection references / flows); unit tests for the multi-type share-target selection, per-connection failure aggregation, and the enabled-for-PP-API degraded state.
+**Testing**: Vitest + RTL; mocked `powerplatformAPI` (Connectivity and Power Apps for Admins connection permissions) and `dataverseAPI` (connection references / flows); unit tests for Service Principal resolution, Enterprise Application ID payloads, per-connection failure aggregation, and the enabled-for-PP-API degraded state.
 
 **Target Platform**: PPTB sandboxed iframe (via 001 shell).
 
@@ -26,7 +26,7 @@ Technical approach: a `connectionsModule` implementing `CategoryModule`, backed 
 
 **Performance Goals**: Responsive with hundreds of connections; grouping on loaded data; batched share to avoid throttling.
 
-**Constraints**: Host APIs only; `powerplatformAPI` requires `connection.enabledForPowerPlatformAPI` (degrade gracefully when off); server-side query where the API supports it.
+**Constraints**: Host APIs only; the active connection must expose both Connectivity and Power Apps for Admins namespaces and have `connection.enabledForPowerPlatformAPI` enabled; server-side query where the API supports it. Service Principal discovery is limited to principals returned by the connection permissions endpoint; Teams and individual users are excluded.
 
 **Scale/Scope**: Hundreds of connections; grouping up to 2 levels (Owner, Connector).
 
@@ -64,10 +64,10 @@ specs/004-connections-page/
 PowerAutomateManager.PPTB/src/
 ├── features/connections/
 │   ├── connectionsModule.ts     # implements CategoryModule for 'connections'
-│   ├── connectionQueries.ts     # powerplatformAPI Connectivity list + owner mapping
+│   ├── connectionQueries.ts     # powerplatformAPI Connectivity list + owner/API/environment mapping
 │   ├── connectionDetails.ts     # record -> DetailField[] (name, owner, flows using it)
 │   ├── connectionGrouping.ts    # Owner/Connector GroupingOption
-│   └── connectionShare.ts       # Share action + principal picker (Users/Teams/S2S apps) + grant
+│   └── connectionShare.ts       # Share action + Service Principal picker + Enterprise Application ID grant
 └── categories/registry.ts       # registerCategory(connectionsModule)
 ```
 

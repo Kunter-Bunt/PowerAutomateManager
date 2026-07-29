@@ -1,8 +1,8 @@
 import * as dv from '../../services/dataverseClient';
 import { runBatched, type BatchFailure } from '../../lib/batch';
 import { openPicker, type PickerOption } from '../../app/pickerService';
-import * as host from '../../services/toolboxHost';
-import { COMPONENTTYPE_WORKFLOW, str } from './flowState';
+import { notify } from '../../state/notificationCenter';
+import { COMPONENTTYPE_WORKFLOW, addFlowSolution, str, type SolutionRef } from './flowState';
 import { activateFlows } from './flowActivation';
 import type { ActionResult, ListItem, ToolbarAction } from '../../models/types';
 
@@ -22,21 +22,28 @@ async function loadUsers(): Promise<PickerOption[]> {
   }));
 }
 
-async function loadUnmanagedSolutions(): Promise<PickerOption[]> {
+async function loadUnmanagedSolutions(): Promise<{
+  options: PickerOption[];
+  byUniqueName: Map<string, SolutionRef>;
+}> {
   const rows = await dv.getSolutions(['solutionid', 'uniquename', 'friendlyname', 'ismanaged']);
-  return rows
-    .filter((r) => r['ismanaged'] === false)
-    .map((r) => ({
-      value: str(r, 'uniquename'),
-      label: str(r, 'friendlyname') || str(r, 'uniquename'),
-    }));
+  const options: PickerOption[] = [];
+  const byUniqueName = new Map<string, SolutionRef>();
+  for (const row of rows) {
+    if (row['ismanaged'] !== false) continue;
+    const uniqueName = str(row, 'uniquename');
+    const name = str(row, 'friendlyname') || uniqueName;
+    options.push({ value: uniqueName, label: name });
+    byUniqueName.set(uniqueName, { id: str(row, 'solutionid'), name, uniqueName });
+  }
+  return { options, byUniqueName };
 }
 
 async function changeOwner(selection: ListItem[]): Promise<ActionResult> {
   const users = await loadUsers();
   const picked = await openPicker({ title: 'Change Owner', options: users, confirmLabel: 'Assign' });
   if (!picked || picked.length === 0) {
-    await host.notify({ title: 'Change Owner', body: 'Select a target user.', type: 'info' });
+    await notify({ title: 'Change Owner', body: 'Select a target user.', type: 'info' });
     return { ok: true };
   }
   const target = picked[0];
@@ -47,10 +54,10 @@ async function changeOwner(selection: ListItem[]): Promise<ActionResult> {
 }
 
 async function addToSolution(selection: ListItem[]): Promise<ActionResult> {
-  const solutions = await loadUnmanagedSolutions();
-  const picked = await openPicker({ title: 'Add To Solution', options: solutions, confirmLabel: 'Add' });
+  const { options, byUniqueName } = await loadUnmanagedSolutions();
+  const picked = await openPicker({ title: 'Add To Solution', options, confirmLabel: 'Add' });
   if (!picked || picked.length === 0) {
-    await host.notify({ title: 'Add To Solution', body: 'Select a target solution.', type: 'info' });
+    await notify({ title: 'Add To Solution', body: 'Select a target solution.', type: 'info' });
     return { ok: true };
   }
   const uniqueName = picked[0];
@@ -66,6 +73,15 @@ async function addToSolution(selection: ListItem[]): Promise<ActionResult> {
       },
     });
   });
+  // Reflect the new membership in the shared index so solution grouping updates
+  // when the affected rows reload (avoids a stale “None” group until refresh).
+  const ref = byUniqueName.get(uniqueName);
+  if (ref) {
+    const failed = new Set(failures.map((f) => f.item.id));
+    for (const item of selection) {
+      if (!failed.has(item.id)) addFlowSolution(item.id, ref);
+    }
+  }
   return toResult(failures);
 }
 

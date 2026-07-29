@@ -42,21 +42,21 @@ Builds on 001/002/003 research. Only connection-specific decisions here.
 
 **Rationale**: FR-008 and the spec's interpretation that Connections have no filters beyond search.
 
-## Decision 6 — Share (Users, Teams, S2S Apps)
+## Decision 6 — Share (Service Principals only)
 
-**Decision**: Implement Share as a category toolbar action. The picker lets the user select one or more principals across three types — Users (`systemuser`), Teams (`team`), and S2S Apps (application users / service principals, i.e. `systemuser` with `applicationid` set). Sharing grants each principal access to each selected connection via the connection permissions endpoint on `powerplatformAPI` (`Connectivity`), batched with `runBatched`; per-connection failures reported (FR-014–015). Targets are sourced from the environment.
+**Decision**: Implement Share as a category toolbar action. The picker lets the user select one or more Service Principals sourced from the environment. Teams and individual users are excluded. Sharing grants each Service Principal access to each selected connection via the connection permissions endpoint on `powerplatformAPI` (`Connectivity`), using the Service Principal's Enterprise Application ID as the principal identifier, batched with `runBatched`; per-connection failures are reported (FR-014–015).
 
-**Rationale**: Sharing a connection is a permission grant on the Power Platform connection resource; the three principal types map to Dataverse `systemuser` (users and S2S app users) and `team`. Batching + per-item failures satisfy FR-013–015 and Constitution III.
+**Rationale**: Sharing a connection is a permission grant on the Power Platform connection resource. The supported target is the tenant-local Service Principal represented by its Enterprise Application ID; it is not a Dataverse Team or individual user. Batching + per-item failures satisfy FR-013–015 and Constitution III.
 
 **Alternatives considered**: Dataverse `GrantAccess` action on a Dataverse record — rejected: connections are Power Platform resources, so permissions are managed through the connection permissions API, not `PrincipalObjectAccess`.
 
-**Verification note**: The exact Connectivity permissions path/payload and the S2S-app principal shape MUST be confirmed against the environment's Power Platform API during implementation; the approach (grant permission per principal per connection, batched) is fixed.
+**Verification note**: The exact Connectivity permissions path/payload and Service Principal principal shape MUST be confirmed against the environment's Power Platform API during implementation; the Enterprise Application ID is the required principal identifier, and the approach (grant permission per Service Principal per connection, batched) is fixed.
 
 ## Resolved unknowns
 
 - **Connection source** → `powerplatformAPI` Connectivity (Decision 1).
 - **Owner / flows-using derivation** → payload owner + connection↔ref↔flow index (Decision 3).
-- **Share mechanism & principal types** → connection permissions grant for Users/Teams/S2S apps, batched (Decision 6).
+- **Share mechanism & principal identity** → connection permissions grant for Service Principals, using the Enterprise Application ID, batched (Decision 6).
 - **Filters** → none beyond search (Decision 5).
 
 No open `NEEDS CLARIFICATION` items remain; two implementation-time verification notes recorded (Decisions 1, 6).

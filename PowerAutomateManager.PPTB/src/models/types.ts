@@ -7,6 +7,7 @@ export type Accent = 'positive' | 'negative' | 'neutral';
 export interface RowStyle {
   accent?: Accent;
   badge?: string;
+  dot?: Accent;
 }
 
 export interface ListItem<TRecord = unknown> {

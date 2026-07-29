@@ -72,8 +72,11 @@ export function useCategoryData(
       .loadItems({ connection, signal: controller.signal })
       .then((items) => {
         if (controller.signal.aborted) return;
-        setCached(connection.id, categoryId, items);
-        setState(items.length === 0 ? { status: 'empty' } : { status: 'ready', items });
+        const decorated = items.map((item) => ({ ...item, style: module.getRowStyle?.(item) }));
+        setCached(connection.id, categoryId, decorated);
+        setState(
+          decorated.length === 0 ? { status: 'empty' } : { status: 'ready', items: decorated },
+        );
       })
       .catch((error: unknown) => {
         if (isAbortError(error) || controller.signal.aborted) return;
@@ -93,12 +96,13 @@ export function useCategoryData(
 
   const applyItemUpdates = useCallback(
     (updates: { id: string; item: ListItem | null }[]) => {
+      const module = getCategory(categoryId);
       setState((prev) => {
         if (prev.status !== 'ready') return prev;
         const byId = new Map(prev.items.map((i) => [i.id, i]));
         for (const update of updates) {
           if (update.item === null) byId.delete(update.id);
-          else byId.set(update.id, update.item);
+          else byId.set(update.id, { ...update.item, style: module?.getRowStyle?.(update.item) });
         }
         const items = [...byId.values()];
         if (connection) setCached(connection.id, categoryId, items);

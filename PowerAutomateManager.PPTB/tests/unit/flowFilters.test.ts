@@ -25,7 +25,7 @@ describe('flow filters', () => {
 
 describe('flow row style', () => {
   it('colors On flows positive and Off flows negative with a badge', () => {
-    expect(flowRowStyle(flow(1, false))).toEqual({ accent: 'positive', badge: 'On' });
-    expect(flowRowStyle(flow(0, false))).toEqual({ accent: 'negative', badge: 'Off' });
+    expect(flowRowStyle(flow(1, false))).toEqual({ accent: 'positive', badge: 'On', dot: 'positive' });
+    expect(flowRowStyle(flow(0, false))).toEqual({ accent: 'negative', badge: 'Off', dot: 'negative' });
   });
 });

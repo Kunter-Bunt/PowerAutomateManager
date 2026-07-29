@@ -1,7 +1,7 @@
 import * as dv from '../../services/dataverseClient';
 import { runBatched, type BatchFailure } from '../../lib/batch';
 import { openPicker, type PickerOption } from '../../app/pickerService';
-import * as host from '../../services/toolboxHost';
+import { notify } from '../../state/notificationCenter';
 import { str } from '../../lib/records';
 import {
   COMPONENTTYPE_CONNECTION_REFERENCE,
@@ -58,7 +58,7 @@ async function changeConnection(selection: ListItem[]): Promise<ActionResult> {
     confirmLabel: 'Apply',
   });
   if (!picked || picked.length === 0) {
-    await host.notify({ title: 'Change Connection', body: 'Select a target connection.', type: 'info' });
+    await notify({ title: 'Change Connection', body: 'Select a target connection.', type: 'info' });
     return { ok: true };
   }
   return repointToConnection(selection, picked[0]);
@@ -67,7 +67,7 @@ async function changeConnection(selection: ListItem[]): Promise<ActionResult> {
 async function merge(selection: ListItem[]): Promise<ActionResult> {
   const connectors = distinctConnectors(selection);
   if (connectors.length !== 1) {
-    await host.notify({
+    await notify({
       title: 'Merge',
       body: 'All selected references must use the same connector.',
       type: 'warning',
@@ -86,7 +86,7 @@ async function merge(selection: ListItem[]): Promise<ActionResult> {
     confirmLabel: 'Merge',
   });
   if (!picked || picked.length === 0) {
-    await host.notify({ title: 'Merge', body: 'Select a master connection.', type: 'info' });
+    await notify({ title: 'Merge', body: 'Select a master connection.', type: 'info' });
     return { ok: true };
   }
   return repointToConnection(selection, picked[0]);
@@ -96,7 +96,7 @@ async function addToSolution(selection: ListItem[]): Promise<ActionResult> {
   const solutions = await loadUnmanagedSolutions();
   const picked = await openPicker({ title: 'Add To Solution', options: solutions, confirmLabel: 'Add' });
   if (!picked || picked.length === 0) {
-    await host.notify({ title: 'Add To Solution', body: 'Select a target solution.', type: 'info' });
+    await notify({ title: 'Add To Solution', body: 'Select a target solution.', type: 'info' });
     return { ok: true };
   }
   const uniqueName = picked[0];

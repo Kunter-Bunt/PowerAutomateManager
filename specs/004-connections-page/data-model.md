@@ -20,11 +20,10 @@ Realizes the shell's `ListItem`/`DetailField`/grouping for the Connections categ
 - connection → `connectionreference` (`connectionid` match) → flows (via the 002/003 `clientdata` flow index). Produces the "Flows Using It" list.
 
 ## Share Target
-- Discriminated principal: `{ type: 'user' | 'team' | 's2s', id, displayName }`.
-  - User → `systemuser` (no `applicationid`).
-  - Team → `team`.
-  - S2S App → `systemuser` with `applicationid` set (application user).
-- Sourced from the environment; the picker groups/filters by type.
+- Service Principal: `{ type: 'servicePrincipal', enterpriseApplicationId, displayName }`.
+  - `enterpriseApplicationId` is the tenant-local Enterprise Application/service principal object ID used by the connection permissions API.
+  - Users and Teams are not supported share targets.
+- Sourced from the environment; the picker lists Service Principals and their display names/Enterprise Application IDs.
 
 ## Grouping options
 - **Owner**: key = owner principal.
@@ -37,10 +36,10 @@ Realizes the shell's `ListItem`/`DetailField`/grouping for the Connections categ
 ## Toolbar action (bulk, per-connection failure reporting)
 | Action | Operation | Precondition/notes |
 |--------|-----------|--------------------|
-| Share | grant permission to each chosen principal on each selected connection (`powerplatformAPI` Connectivity permissions), batched | requires ≥1 target; unmanageable connections → per-connection failure |
+| Share | grant permission to each chosen Service Principal on each selected connection (`powerplatformAPI` connection permissions), using the Enterprise Application ID, batched | requires ≥1 Service Principal; unmanageable connections → per-connection failure |
 
 ## Rules
 - Selection de-duplicated by connection id (FR-007).
-- Share with no target chosen → no-op + prompt (edge case).
+- Share with no Service Principal chosen → no-op + prompt (edge case).
 - Share via `runBatched`; returns `{id, reason}[]`; affected rows refresh where sharing changes displayed state (FR-014).
 - When `connection.enabledForPowerPlatformAPI` is false, the category shows a prerequisite error/empty state instead of a list.

@@ -28,10 +28,11 @@ export function parseConnections(response: unknown): ParsedConnection[] {
     const createdBy = rec(props['createdBy']);
     const api = rec(props['api']);
     const id = sval(item['name'] ?? item['id']);
+    const apiId = sval(props['apiId'] ?? api['name']);
     return {
       id,
       displayName: sval(props['displayName'] ?? item['name'] ?? id),
-      connector: sval(props['apiId'] ?? api['name'] ?? props['connectorName']),
+      connector: apiId || sval(props['connectorName']),
       owner: sval(createdBy['displayName'] ?? createdBy['userPrincipalName']),
     };
   });

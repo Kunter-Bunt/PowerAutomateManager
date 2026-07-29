@@ -11,3 +11,11 @@ export async function post(
 ): Promise<PowerPlatformResponse> {
   return getPowerPlatformApi()[ns].Post(path, body);
 }
+
+export async function put(
+  ns: PpNamespace,
+  path: string,
+  body: unknown,
+): Promise<PowerPlatformResponse> {
+  return getPowerPlatformApi()[ns].Put(path, body);
+}

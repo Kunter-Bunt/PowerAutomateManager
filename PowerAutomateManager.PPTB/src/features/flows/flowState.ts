@@ -30,6 +30,14 @@ export function setFlowIndex(next: FlowIndex): void {
   flowIndex.connRefByLogical = next.connRefByLogical;
 }
 
+// Appends a solution membership for a flow (no-op if already present) so that
+// solution grouping reflects an Add-To-Solution without a full reload.
+export function addFlowSolution(flowId: string, ref: SolutionRef): void {
+  const list = flowIndex.solutionsByFlow.get(flowId) ?? [];
+  if (list.some((s) => s.id === ref.id)) return;
+  flowIndex.solutionsByFlow.set(flowId, [...list, ref]);
+}
+
 type Rec = Record<string, unknown>;
 
 export function str(record: Rec, key: string): string {

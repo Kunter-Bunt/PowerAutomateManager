@@ -41,14 +41,14 @@ description: "Task list for feature 004 - Connections Page"
 
 ## Phase 4: User Story 2 - Share connections (Priority: P1)
 
-**Goal**: Share action lets the user pick Users, Teams, and S2S Apps and grants each access to the selected connections, with per-connection failure reporting.
+**Goal**: Share action lets the user pick Service Principals, uses their Enterprise Application IDs, and grants each access to the selected connections, with per-connection failure reporting.
 
-**Independent Test**: Share several connections with a mix of principal types; no-target prompts; unmanageable connections report as failures.
+**Independent Test**: Share several connections with one or more Service Principals; no-target prompts; Teams and individual users are unavailable; unmanageable connections report as failures.
 
-- [X] T007 [US2] Implement the principal picker in `PowerAutomateManager.PPTB/src/features/connections/connectionShare.ts` (Users=`systemuser`, Teams=`team`, S2S Apps=`systemuser` with `applicationid`; sourced from environment; type-distinguished)
-- [X] T008 [US2] Implement the Share run in `PowerAutomateManager.PPTB/src/features/connections/connectionShare.ts` (grant permission per principal per connection via `powerPlatformClient` Connectivity permissions, executed with `runBatched`; per-connection failures; no-target → no-op + prompt)
+- [X] T007 [US2] Implement the Service Principal picker in `PowerAutomateManager.PPTB/src/features/connections/connectionShare.ts` (load connection role assignments through the Power Apps for Admins API; retain only `ServicePrincipal` principals and their Enterprise Application IDs; Teams and individual users excluded)
+- [X] T008 [US2] Implement the Share run in `PowerAutomateManager.PPTB/src/features/connections/connectionShare.ts` (grant permission through the Power Apps for Admins `modifyPermissions` route using the Enterprise Application ID and `ServicePrincipal` type; execute with `runBatched`; per-connection failures; no-target → no-op + prompt)
 - [X] T009 [US2] Register the Share `toolbarAction` in `connectionsModule` and refresh affected rows in `PowerAutomateManager.PPTB/src/features/connections/connectionsModule.ts`
-- [X] T010 [P] [US2] Unit test multi-type target resolution, per-connection failure aggregation, and no-target path in `PowerAutomateManager.PPTB/tests/unit/connectionShare.test.ts`
+- [X] T010 [P] [US2] Unit test Service Principal resolution, Enterprise Application ID payloads, per-connection failure aggregation, and no-target path in `PowerAutomateManager.PPTB/tests/unit/connectionShare.test.ts`
 
 ---
 
@@ -67,7 +67,7 @@ description: "Task list for feature 004 - Connections Page"
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [X] T014 [US2] Implement the disabled-Power-Platform-API degraded state (clear prerequisite error/empty state) in `PowerAutomateManager.PPTB/src/features/connections/connectionsModule.ts`
-- [ ] T015 Verify the Connectivity permissions path/payload and the S2S-app principal shape against the environment; update `connectionShare.ts`
+- [ ] T015 Verify the Power Apps for Admins connection-permissions path/payload and Service Principal principal shape against the environment; update `connectionShare.ts`
 - [X] T016 [P] Run `npm run lint` and `npm run typecheck` to zero errors; confirm no category filters render (only search + grouping)
 - [ ] T017 Run connections quickstart.md scenarios 1–7 against a real environment (incl. scenario 7 with PP API disabled)
 - [ ] T018 [P] Performance pass with hundreds of connections

@@ -97,18 +97,32 @@ export interface DataverseApi {
 }
 
 export type PpNamespace =
-  | 'Connectivity'
-  | 'PowerAutomate'
-  | 'UserManagement'
-  | 'EnvironmentManagement'
+  | 'Analytics'
+  | 'AppManagement'
   | 'Authorization'
-  | 'Governance';
+  | 'Connectivity'
+  | 'CopilotStudio'
+  | 'Dynamics'
+  | 'EnvironmentManagement'
+  | 'Governance'
+  | 'Licensing'
+  | 'PowerApps'
+  | 'PowerAutomate'
+  | 'PowerPages'
+  | 'ResourceQuery'
+  | 'UserManagement'
+  | 'WorkflowAgents';
 
 export type PpClient = Record<
   PpNamespace,
   {
     Get(path?: string, connectionTarget?: 'primary' | 'secondary'): Promise<PowerPlatformResponse>;
     Post(
+      path?: string,
+      body?: unknown,
+      connectionTarget?: 'primary' | 'secondary',
+    ): Promise<PowerPlatformResponse>;
+    Put(
       path?: string,
       body?: unknown,
       connectionTarget?: 'primary' | 'secondary',

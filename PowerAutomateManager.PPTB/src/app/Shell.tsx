@@ -14,8 +14,10 @@ import { clearCache } from '../state/categoryCache';
 import { getCategory } from '../categories/registry';
 import { applyTheme } from '../lib/theme';
 import * as host from '../services/toolboxHost';
+import { notify as pushNotification } from '../state/notificationCenter';
 import type {
   ActionContext,
+  ActionResult,
   CategoryId,
   CategoryNotice,
   GroupingOption,
@@ -180,19 +182,36 @@ export function Shell(): JSX.Element {
       };
 
       try {
-        const result = await action.run(target, ctx);
+        let result: ActionResult;
+        try {
+          result = await action.run(target, ctx);
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error);
+          await pushNotification({
+            title: action.label,
+            body: `Action failed unexpectedly: ${reason}`,
+            type: 'error',
+          });
+          return;
+        }
         if (result.ok) {
-          await host.notify({
+          await pushNotification({
             title: action.label,
             body: 'Completed successfully.',
             type: 'success',
           });
         } else {
-          await host.notify({
-            title: action.label,
-            body: `${result.failures.length} item(s) failed.`,
-            type: 'warning',
-          });
+          await pushNotification(
+            {
+              title: action.label,
+              body: `${result.failures.length} item(s) failed.`,
+              type: 'warning',
+            },
+            result.failures.map((failure) => {
+              const item = target.find((entry) => entry.id === failure.id);
+              return { id: item?.primaryText ?? failure.id, reason: failure.reason };
+            }),
+          );
         }
         // Prefer the action's optimistic updates (immediate, and avoids a stale
         // re-fetch for eventually-consistent operations like flow activation);

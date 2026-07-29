@@ -1,11 +1,13 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { flowActions } from '../../src/features/flows/flowActions';
+import { flowIndex } from '../../src/features/flows/flowState';
 import { registerPickerHost } from '../../src/app/pickerService';
 import type { ListItem } from '../../src/models/types';
 
 const turnOn = flowActions.find((a) => a.id === 'turn-on')!;
 const turnOff = flowActions.find((a) => a.id === 'turn-off')!;
 const changeOwner = flowActions.find((a) => a.id === 'change-owner')!;
+const addToSolution = flowActions.find((a) => a.id === 'add-to-solution')!;
 
 const mk = (id: string): ListItem => ({ id, primaryText: id, searchText: id, raw: {} });
 const ctx = { connection: { id: 'c', name: 'e', url: '', environment: 'Dev' as const }, refresh: () => undefined };
@@ -68,5 +70,22 @@ describe('flow bulk actions', () => {
     const result = await changeOwner.run([mk('1')], ctx);
     expect(result).toEqual({ ok: true });
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it('Add To Solution records membership so grouping reflects it', async () => {
+    flowIndex.solutionsByFlow = new Map();
+    (window as unknown as { dataverseAPI: { getSolutions: unknown } }).dataverseAPI.getSolutions = vi
+      .fn()
+      .mockResolvedValue({
+        value: [
+          { solutionid: 's1', uniquename: 'mysol', friendlyname: 'My Solution', ismanaged: false },
+        ],
+      });
+    registerPickerHost((_config, resolve) => resolve(['mysol']));
+    const result = await addToSolution.run([mk('f1')], ctx);
+    expect(result).toEqual({ ok: true });
+    expect(flowIndex.solutionsByFlow.get('f1')).toEqual([
+      { id: 's1', name: 'My Solution', uniqueName: 'mysol' },
+    ]);
   });
 });

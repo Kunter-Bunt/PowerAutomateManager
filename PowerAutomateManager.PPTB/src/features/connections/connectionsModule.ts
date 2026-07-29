@@ -34,7 +34,7 @@ export const connectionsModule: CategoryModule = {
       return {
         level: 'warning',
         message:
-          'The Power Platform API is not enabled for this connection, so connections are listed from Dataverse and Sharing is unavailable. Configure an app registration, enable “Enabled for Power Platform” on the connection, and grant the Connectivity (Connections) permissions to unlock owner details and Sharing.',
+          'The Power Platform API is not enabled for this connection, so connections are listed from Dataverse and Sharing is unavailable. Configure an app registration, enable “Enabled for Power Platform” on the connection, and grant the Connectivity (Connections) permission to unlock owner details and Service Principal sharing.',
         link: {
           href: 'https://docs.powerplatformtoolbox.com/tool-development/api-reference/powerplatform-api',
           label: 'See the Power Platform API docs',

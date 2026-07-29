@@ -64,6 +64,9 @@ export function ObjectList({ items, selection, busyStatus, onRowClick }: ObjectL
               }
             >
               <span className="pam-row-primary" title={item.primaryText}>
+                {item.style?.dot && (
+                  <span className={`pam-row-dot ${item.style.dot}`} aria-hidden="true" />
+                )}
                 {item.primaryText}
               </span>
               {item.secondaryText && (

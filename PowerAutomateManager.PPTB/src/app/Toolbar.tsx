@@ -1,5 +1,6 @@
 import type { ListItem, ToolbarAction } from '../models/types';
 import type { Connection } from '../models/hostApi';
+import { NotificationBell } from './NotificationBell';
 
 interface ToolbarProps {
   selection: ListItem[];
@@ -49,6 +50,7 @@ export function Toolbar({
           {action.label}
         </button>
       ))}
+      <NotificationBell />
     </div>
   );
 }

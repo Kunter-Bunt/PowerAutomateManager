@@ -38,7 +38,7 @@ Rules: all reads use `$select`/`$filter`/`$top` (no whole-table fetches); `fetch
 ```ts
 get(ns: PpNamespace, path: string, signal?: AbortSignal): Promise<PowerPlatformResponse>;
 post(ns: PpNamespace, path: string, body: unknown): Promise<PowerPlatformResponse>;
-// ns e.g. 'Connectivity' | 'PowerAutomate' | 'UserManagement'
+// ns e.g. 'Connectivity' | 'PowerAppsAdmin' | 'PowerAutomate' | 'UserManagement'
 ```
 
 Rules: used for Power Platform service data not available in Dataverse (notably Connections in feature 004). Requires the connection to be enabled for Power Platform API; callers MUST degrade gracefully (empty/error state) when `connection.enabledForPowerPlatformAPI` is false.

@@ -19,6 +19,7 @@ describe('parseConnections', () => {
           properties: {
             displayName: 'SharePoint',
             apiId: '/providers/.../sharepointonline',
+            environment: { id: 'env1' },
             createdBy: { displayName: 'Alice' },
           },
         },

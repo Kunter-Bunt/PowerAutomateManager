@@ -51,6 +51,34 @@ export async function loadFlows(signal: AbortSignal): Promise<Record<string, unk
   return dv.fetchAll(FLOW_FETCH, signal);
 }
 
+function singleFlowFetch(id: string): string {
+  return `
+<fetch>
+  <entity name="workflow">
+    <attribute name="workflowid" />
+    <attribute name="name" />
+    <attribute name="statecode" />
+    <attribute name="statuscode" />
+    <attribute name="ownerid" />
+    <attribute name="ismanaged" />
+    <attribute name="modifiedon" />
+    <filter type="and">
+      <condition attribute="workflowid" operator="eq" value="${id}" />
+    </filter>
+  </entity>
+</fetch>`;
+}
+
+// Reloads one flow with the same shape (incl. _ownerid_value + formatted value)
+// as loadFlows, so details and owner grouping stay correct after an update.
+export async function reloadFlow(
+  id: string,
+  signal: AbortSignal,
+): Promise<Record<string, unknown> | null> {
+  const rows = await dv.fetchAll(singleFlowFetch(id), signal);
+  return rows[0] ?? null;
+}
+
 export async function loadSolutionMembership(
   signal: AbortSignal,
 ): Promise<Map<string, SolutionRef[]>> {
